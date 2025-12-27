@@ -56,8 +56,18 @@ export default async (request) => {
     const store = getStore({ name: "sunwoo-takbae-v1", consistency: "strong" });
 
     // /.netlify/functions/data/<...> 로 들어오는 걸 기준으로 path 추출
-    const base = "/.netlify/functions/data";
-    let path = url.pathname.startsWith(base) ? url.pathname.slice(base.length) : url.pathname;
+    const baseFn = "/.netlify/functions/data";
+let path = url.pathname;
+
+// 1) 함수 직통 호출인 경우: /.netlify/functions/data/...
+if (path.startsWith(baseFn)) path = path.slice(baseFn.length);
+
+// 2) 리다이렉트 호출인 경우: /api/...
+if (path.startsWith("/api")) path = path.slice("/api".length);
+
+if (!path.startsWith("/")) path = "/" + path;
+path = path.replace(/\/+$/, "") || "/";
+
     if (!path.startsWith("/")) path = "/" + path;
     path = path.replace(/\/+$/, "") || "/";
 
