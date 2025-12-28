@@ -1775,32 +1775,31 @@ ${rec.type==="INTERNATIONAL" ? `국가: ${escapeHtml(p.country || "-")}\n` : ""}
 
   async function hydrateCourierSession(){
     const sess = loadSession();
-    if(sess.courier?.code && await courierByCode(sess.courier.code)){
-      $("courierAuth").style.display = "none";
-      $("courierDash").style.display = "";
-      $("courierListCard").style.display = "";
-      const c = await courierByCode(sess.courier.code);
+    const code = sess.courier?.code || "";
+    if(code){
+      const c = await courierByCode(code);
+      if(c){
+        $("courierAuth").style.display = "none";
+        $("courierDash").style.display = "";
+        $("courierListCard").style.display = "";
 
-      if(c?.role){
-        courierMode = c.role;
-        updateCourierModeUI();
+        if(c.role){
+          courierMode = c.role; // DOMESTIC / INTERNATIONAL / ECONOMY_CVS
+          updateCourierModeUI();
+        }
+
+        const modeLabel = (courierMode==="ECONOMY_CVS") ? "반값택배 기사" : (courierMode==="INTERNATIONAL" ? "국제택배 기사" : "국내/반품 기사");
+        $("c_who").textContent = `로그인: ${c.name} (${c.code}) · ${modeLabel}`;
+        void renderCourierLists();
+        return;
       }
-
-      const modeLabel = (courierMode==="ECONOMY_CVS") ? "반값택배 기사" : (courierMode==="INTERNATIONAL" ? "국제택배 기사" : "국내/반품 기사");
-      $("c_who").textContent = `로그인: ${c.name} (${c.code}) · ${modeLabel}`;
-      void renderCourierLists();
-      return;
     }
+
     // not logged in
     $("courierAuth").style.display = "";
     $("courierDash").style.display = "none";
     $("courierListCard").style.display = "none";
-  }else{
-      $("courierAuth").style.display = "";
-      $("courierDash").style.display = "none";
-      $("courierListCard").style.display = "none";
-      $("c_authResult").style.display = "none";
-    }
+    $("c_authResult").style.display = "none";
   }
 
   $("c_register").onclick = async () => {
