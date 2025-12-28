@@ -125,6 +125,38 @@ export default async (request) => {
       return j(200, { ok: true, rec: saved });
     }
 
+    // ---- Admin: wipe all data (DANGEROUS) ----
+    // POST /admin/wipe { confirm: "전체삭제" }
+    if (method === "POST" && path === "/admin/wipe") {
+      const body = await request.json().catch(() => ({}));
+      const confirmText = String(body?.confirm || "");
+      if (confirmText !== "전체삭제") return j(400, { error: "CONFIRM_TEXT_REQUIRED" });
+
+      // Prefer deleteAll if available (newer Blobs API)
+      if (typeof store.deleteAll === "function") {
+        const res = await store.deleteAll();
+        return j(200, { ok: true, mode: "deleteAll", ...res });
+      }
+
+      // Fallback: list+delete known prefixes
+      const prefixes = ["kv:", "res:", "wb:", "store:", "courier:"];
+      let deleted = 0;
+      for (const prefix of prefixes) {
+        let cursor = undefined;
+        while (true) {
+          const listed = await store.list({ prefix, cursor, consistency: "strong" });
+          const blobs = listed?.blobs || [];
+          for (const b of blobs) {
+            await store.delete(b.key);
+            deleted += 1;
+          }
+          cursor = listed?.cursor;
+          if (!cursor) break;
+        }
+      }
+      return j(200, { ok: true, mode: "list+delete", deleted });
+    }
+
     // ---- Stores / Couriers (simple) ----
     if (method === "POST" && path === "/stores/register") {
       const body = await request.json();
