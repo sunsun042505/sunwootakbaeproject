@@ -146,7 +146,20 @@
       return m[t] || t || "-";
     }
 
-    function statusLabel(s){
+    const KIND_LABEL = {
+      DOCUMENT: "서류",
+      SMALL_BOX: "소형 박스",
+      MEDIUM_BOX: "중형 박스",
+      LARGE_BOX: "대형 박스",
+      FRAGILE: "파손주의",
+      ETC: "기타"
+    };
+
+    function kindLabel(k){
+      const key = (k || "").trim();
+      return key ? (KIND_LABEL[key] || key) : "-";
+    }
+function statusLabel(s){
       const m = {
         RESERVED:"예약", WAYBILL_ISSUED:"운송장발급", FINAL:"점포접수", PICKED_UP:"기사수거",
         ARRIVED_COLLECTION_CENTER:"집화센터도착", ARRIVED_HUB:"허브센터도착", OUTBOUND_PREP:"출고준비",
@@ -160,7 +173,8 @@
     }
 
     function pickAddr(rec){
-      return (rec.addr || rec.address || rec.toAddr || rec.customerAddr || "-");
+      // Our records store address in rec.addr (customer 입력) + sometimes rec.package.addr
+      return (rec.addr || rec.package?.addr || rec.address || rec.toAddr || rec.customerAddr || "-");
     }
 
     async function load(){
@@ -183,12 +197,19 @@
       }
 
       $("typeTag").textContent = typeLabel(rec.type);
-      $("storeName").textContent = rec.storeName || "-";
-      $("destStoreName").textContent = rec.destStoreName || "-";
+
+      // store/destination names may not exist at kiosk issue time
+      $("storeName").textContent = rec.storeName || rec.originStoreName || "미정";
+      $("destStoreName").textContent = rec.destStoreName || rec.destinationStoreName || (rec.type==="ECONOMY_CVS" ? "미정" : "-");
+
       $("addr").textContent = pickAddr(rec);
-      $("weight").textContent = (rec.weightKg ?? rec.weight ?? "-");
-      $("kind").textContent = rec.kind || "-";
-      $("statusText").textContent = `상태: ${statusLabel(rec.status)} (${rec.status || "-"})`;
+
+      const w = (rec.package?.weightKg ?? rec.weightKg ?? rec.weight ?? "-");
+      $("weight").textContent = (typeof w === "number") ? String(w) : String(w);
+
+      const kindKey = (rec.package?.kind ?? rec.kind ?? "");
+      $("kind").textContent = kindLabel(kindKey);
+      $("statusText").textContent = `상태: ${statusLabel(rec.status)}`;
     }
 
     $("btnReload").onclick = () => load();
