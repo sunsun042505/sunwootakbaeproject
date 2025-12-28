@@ -121,8 +121,11 @@
       background: linear-gradient(180deg, rgba(53,208,127,.38), rgba(53,208,127,.14));
       border-color: rgba(53,208,127,.35);
     }
-    .btn
-.btn.ghost{ color: var(--muted); }
+    .btn.danger{
+      background: linear-gradient(180deg, rgba(255,107,107,.38), rgba(255,107,107,.15));
+      border-color: rgba(255,107,107,.35);
+    }
+    .btn.ghost{ color: var(--muted); }
 
     .mono{font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; letter-spacing:.3px;}
     .hint{font-size:12px; color:var(--muted); line-height:1.4; margin-top:10px;}
@@ -215,8 +218,11 @@
           <div class="hint">
             • 흐름: 고객 예약 → (kiosk.html) 운송장 발급 → 점포 접수 → 기사 집화 → 고객 조회에서 집화 완료 + 기사 정보 표시
           </div>
-</div>
-</div>
+          <div class="actions">
+            <button class="btn danger" id="wipeAll">전체 데이터 삭제</button>
+          </div>
+        </div>
+      </div>
 
       <!-- CUSTOMER -->
       <div id="customer" style="display:none;">
@@ -1051,7 +1057,7 @@
     return list.find(s => s.name === name && s.code === code) || null;
   }
 
-  async async async function hydrateStoreSession(){
+  async async function hydrateStoreSession(){
     const sess = loadSession();
     if(sess.store?.name && sess.store?.code && await storeExists(sess.store.name, sess.store.code)){
       $("storeAuth").style.display = "none";
@@ -1398,7 +1404,7 @@ ${rec.type==="INTERNATIONAL" ? `국가: ${escapeHtml(p.country || "-")}\n` : ""}
     return list.find(c => c.code === code) || null;
   }
 
-  async async async function hydrateCourierSession(){
+  async async function hydrateCourierSession(){
     const sess = loadSession();
     if(sess.courier?.code && await courierByCode(sess.courier.code)){
       $("courierAuth").style.display = "none";
@@ -1572,17 +1578,18 @@ ${detailText(rec)}
   }
 
   // wipe (remote + local)
-// init
+  $("wipeAll").onclick = async () => {
+    if(!confirm("진짜 전체 데이터 삭제할까?")) return;
+    await apiDel(STORAGE_KEYS.RES);
+    await apiDel(STORAGE_KEYS.STORES);
+    await apiDel(STORAGE_KEYS.COURIERS);
+    localStorage.removeItem(STORAGE_KEYS.SESSION);
+    alert("삭제 완료");
+  };
+
+  // init
   show("home");
   setCustTab("reserve");
-const t = await r.text();
-      if(!r.ok) throw new Error(t);
-      // optional: reload UI state
-      setSelectedWaybill("");
-    }catch(e){
-    }
-  });
-
 </script>
 
   <!-- Store Picker Modal -->
@@ -1597,5 +1604,6 @@ const t = await r.text();
       <div class="list" id="storePickerList"></div>
     </div>
   </div>
+
 </body>
 </html>
