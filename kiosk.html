@@ -352,10 +352,34 @@
 <script>
   const $ = (id) => document.getElementById(id);
 
-  function openLabel(waybillNo){
-    const wb = String(waybillNo || "").trim();
+  function openLabel(arg){
+    // arg can be waybill string or a record object
+    const wb = (typeof arg === "string" || typeof arg === "number") ? String(arg).trim() : String(arg?.waybillNo || "").trim();
     if(!wb){ alert("운송장 번호가 없어!"); return; }
-    const url = `label.html?waybill=${encodeURIComponent(wb)}`;
+
+    let url = `label.html?waybill=${encodeURIComponent(wb)}`;
+
+    // Build small payload so label works even when API isn't reachable
+    if(arg && typeof arg === "object"){
+      try{
+        const payloadObj = {
+          waybillNo: wb,
+          type: arg.type || "",
+          storeName: arg.storeName || "",
+          destStoreName: arg.destStoreName || "",
+          addr: (arg.addr || arg.package?.addr || ""),
+          weightKg: (arg.package?.weightKg ?? arg.weightKg ?? arg.weight ?? ""),
+          kind: (arg.package?.kind ?? arg.kind ?? "")
+        };
+        const jsonStr = JSON.stringify(payloadObj);
+        const bytes = new TextEncoder().encode(jsonStr);
+        let bin = "";
+        bytes.forEach(b => bin += String.fromCharCode(b));
+        const b64 = btoa(bin).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
+        url += `&payload=${b64}`;
+      }catch(e){}
+    }
+
     window.open(url, "_blank");
   }
 
@@ -689,7 +713,7 @@ ${rec.type === "INTERNATIONAL" ? `국가: ${escapeHtml(rec.package.country)}` : 
       <button class="btn primary" id="w_print" type="button">운송장 출력</button>
     `;
 
-    $("w_print").onclick = () => openLabel(rec.waybillNo);
+    $("w_print").onclick = () => openLabel(rec);
 
     // next customer
     $("walkinFormCard").style.display = "none";
@@ -775,7 +799,7 @@ ${rec.type === "INTERNATIONAL" ? `국가: ${escapeHtml(rec.package.country)}` : 
       <button class="btn primary" id="r_print" type="button">운송장 출력</button>
     `;
 
-    $("r_print").onclick = () => openLabel(rec.waybillNo);
+    $("r_print").onclick = () => openLabel(rec);
     await renderReserveList();
   };
 
