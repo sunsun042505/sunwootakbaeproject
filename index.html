@@ -1505,6 +1505,8 @@ ${rec.type==="INTERNATIONAL" ? `국가: ${escapeHtml(p.country || "-")}\n` : ""}
     }).catch(()=>{});
   });
 
+  try{ $("apiRetry").onclick = () => location.reload(); }catch(e){}
+
   // init center select
   refreshCenterSelect();
 
@@ -1947,12 +1949,6 @@ ${detailText(rec)}
   show("home");
   setCustTab("reserve");
 
-<script>
-(function(){
-  const r = document.getElementById("apiRetry");
-  if(r) r.onclick = async () => { location.reload(); };
-})();
-</script>
 </script>
 
   <!-- Store Picker Modal -->
