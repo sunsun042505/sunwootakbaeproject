@@ -1,7 +1,8 @@
-[functions]
-  node_bundler = "esbuild"
-  
+[build]
+publish = "."
+functions = "netlify/functions"
+
 [[redirects]]
-  from = "/api/*"
-  to = "/.netlify/functions/data/:splat"
-  status = 200
+from = "/api/*"
+to = "/.netlify/functions/:splat"
+status = 200

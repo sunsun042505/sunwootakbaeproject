@@ -130,7 +130,6 @@
 
     <div class="card" id="errCard" style="display:none;">
       <div class="err" id="errText">-</div>
-      <div id="errExtra" class="sub" style="margin-top:10px; display:none;"></div>
     </div>
   </div>
 
@@ -223,15 +222,10 @@
       return events;
     }
 
-    function showErr(msg, extraHtml){
+    function showErr(msg){
       $("resultCard").style.display = "none";
       $("errCard").style.display = "";
       $("errText").textContent = msg;
-      const extra = $("errExtra");
-      if(extra){
-        extra.innerHTML = extraHtml || "";
-        extra.style.display = extraHtml ? "" : "none";
-      }
     }
 
     function showResult(){
@@ -307,15 +301,8 @@
 
       if(!rec){
         // 도움 메시지: 서버에 데이터는 있지만 해당 번호가 없을 수 있음
-        const n = all.length || 0;
-        const sample = all.slice(-5).reverse().map(x => String(x.waybillNo||"")).filter(Boolean);
-        const extra = `
-          <div>서버 저장 건수: <b>${n}</b>건</div>
-          ${sample.length ? `<div style="margin-top:6px;">최근 운송장(일부):<br/><span class="mono">${sample.map(s=>escapeHtml(s)).join("<br/>")}</span></div>` : ""}
-          <div style="margin-top:10px;">※ 만약 키오스크에서 발급은 했는데 여기서 0건이라면, <b>지금 보고 있는 tracking.html이 발급한 사이트(도메인)와 다른 곳</b>이거나, 키오스크가 서버 저장(API) 없이 동작 중일 수 있어.</div>
-          <div style="margin-top:8px;">빠른 체크: 같은 탭에서 <span class="mono">/api/reservations</span> 열었을 때 리스트가 나오는지 확인해줘.</div>
-        `;
-        showErr("등록된 운송장이 아님.", extra);
+        const hint = all.length ? `서버에는 ${all.length}건이 있지만, 이 번호는 못 찾았어.` : "서버에 저장된 접수 내역이 아직 없어.";
+        showErr(`등록된 운송장이 아님. (${hint})`);
         return;
       }
 
