@@ -10,7 +10,6 @@ export default async function handler(request) {
         headers: { "content-type": "application/json; charset=utf-8" },
       });
     }
-
     let body;
     try {
       body = await request.json();
@@ -20,7 +19,6 @@ export default async function handler(request) {
         headers: { "content-type": "application/json; charset=utf-8" },
       });
     }
-
     const { key, value } = body || {};
     if (!key) {
       return new Response(JSON.stringify({ error: "MISSING_KEY" }), {
@@ -29,7 +27,6 @@ export default async function handler(request) {
       });
     }
 
-    // store JSON value
     await store.set(String(key), value);
     return new Response(JSON.stringify({ ok: true, key }), {
       status: 200,

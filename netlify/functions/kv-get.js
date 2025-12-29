@@ -12,7 +12,6 @@ export default async function handler(request) {
         headers: { "content-type": "application/json; charset=utf-8" },
       });
     }
-
     const value = await store.get(key, { type: "json" });
     return new Response(JSON.stringify({ key, value: value ?? null }), {
       status: 200,

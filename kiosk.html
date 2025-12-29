@@ -352,18 +352,6 @@
 <script>
   const $ = (id) => document.getElementById(id);
 
-  function safe(fn){
-    return async (...args)=>{
-      try{ await fn(...args); }
-      catch(e){
-        console.error(e);
-        const msg = (e && e.message) ? e.message : String(e);
-        alert("동작 실패: 서버/저장 연결을 확인해줘!\n" + msg);
-      }
-    };
-  }
-
-
   function openLabel(arg){
     // arg can be waybill string/number OR a record object
     const wb = (typeof arg === "string" || typeof arg === "number") ? String(arg).trim() : String(arg?.waybillNo || "").trim();
@@ -437,31 +425,6 @@
     };
   }
   const API_BASE = "/api";
-  let apiOnline = true;
-  function showApiBanner(msg){
-    apiOnline = false;
-    const b = document.getElementById("apiBanner");
-    const m = document.getElementById("apiBannerMsg");
-    if(b){ b.style.display = ""; }
-    if(m && msg) m.textContent = msg;
-  }
-  function hideApiBanner(){
-    apiOnline = true;
-    const b = document.getElementById("apiBanner");
-    if(b) b.style.display = "none";
-  }
-  async function apiPing(){
-    try{
-      const r = await fetch(`${API_BASE}/ping`, { cache: "no-store" });
-      if(!r.ok) throw new Error("ping failed");
-      hideApiBanner();
-      return true;
-    }catch(e){
-      showApiBanner("서버(/api) 연결이 안 돼. 같은 도메인 Netlify 배포본으로 접속했는지 확인해줘!");
-      return false;
-    }
-  }
-
   const useLocalFallback = false;
   const mem = {};
 
@@ -884,9 +847,6 @@ ${rec.type === "INTERNATIONAL" ? `국가: ${escapeHtml(rec.package.country)}` : 
   // init
   initStoreGate();
   show("view_home");
-
-  // API banner retry
-  try{ $("apiRetry").onclick = () => location.reload(); }catch(e){}
 </script>
 </body>
 </html>

@@ -3,8 +3,6 @@ import { getStore } from "@netlify/blobs";
 const store = getStore({ name: "sunwoo-takbae-v1", consistency: "strong" });
 const RES_KEY = "DELIVERY_RESERVATIONS_V1";
 
-// GET /api/reservations  -> list
-// GET /api/reservations?invoice_no=81... -> single (optional convenience)
 export default async function handler(request) {
   try {
     if (request.method !== "GET") {
@@ -13,27 +11,18 @@ export default async function handler(request) {
         headers: { "content-type": "application/json; charset=utf-8" },
       });
     }
-
     const url = new URL(request.url);
     const invoice = (url.searchParams.get("invoice_no") || "").replace(/\D/g, "");
-
     const list = (await store.get(RES_KEY, { type: "json" })) || [];
-    if (!Array.isArray(list)) {
-      return new Response(JSON.stringify([]), {
-        status: 200,
-        headers: { "content-type": "application/json; charset=utf-8" },
-      });
-    }
-
+    const arr = Array.isArray(list) ? list : [];
     if (invoice) {
-      const rec = list.find((x) => String(x?.waybillNo || "").replace(/\D/g, "") === invoice) || null;
+      const rec = arr.find((x) => String(x?.waybillNo || "").replace(/\D/g, "") === invoice) || null;
       return new Response(JSON.stringify(rec), {
         status: 200,
         headers: { "content-type": "application/json; charset=utf-8" },
       });
     }
-
-    return new Response(JSON.stringify(list), {
+    return new Response(JSON.stringify(arr), {
       status: 200,
       headers: { "content-type": "application/json; charset=utf-8" },
     });
