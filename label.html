@@ -1,355 +1,58 @@
-<!doctype html>
-<html lang="ko">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>운송장 라벨</title>
-  <style>
-    :root{
-      --bg:#0b0f14; --text:#e8eef6; --muted:#9aa7b5;
-      --border:rgba(255,255,255,.10); --accent:#2eff90;
-    }
-    body{ margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Noto Sans KR,Apple SD Gothic Neo,sans-serif; background:var(--bg); color:var(--text); }
-    .wrap{ max-width:920px; margin:0 auto; padding:18px; }
-    .top{ display:flex; gap:10px; align-items:center; justify-content:space-between; flex-wrap:wrap; }
-    .btn{
-      background:transparent; border:1px solid var(--border); color:var(--text);
-      padding:10px 12px; border-radius:12px; cursor:pointer; font-weight:800;
-    }
-    .btn.primary{ border-color:rgba(46,255,144,.35); }
-    .btn:active{ transform:translateY(1px); }
-    .card{ background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02)); border:1px solid var(--border); border-radius:16px; padding:14px; }
-    .hint{ color:var(--muted); font-size:12px; line-height:1.45; }
-    .mono{ font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace; }
-
-    /* Label area (100x150mm) */
-    .labelStage{ margin-top:14px; display:flex; justify-content:center; }
-    .label{
-      width: 100mm;
-      height: 150mm;
-      background:#fff;
-      color:#000;
-      border-radius:8px;
-      overflow:hidden;
-      box-shadow:0 10px 30px rgba(0,0,0,.35);
-    }
-    .labelInner{ padding:10mm; box-sizing:border-box; height:100%; display:flex; flex-direction:column; gap:6mm; }
-    .row{ display:flex; justify-content:space-between; gap:6mm; align-items:flex-start; }
-    .big{ font-size:18pt; font-weight:900; }
-    .small{ font-size:10pt; }
-    .tag{ padding:2mm 3mm; border:1px solid #000; border-radius:4mm; font-weight:900; font-size:10pt; }
-    .line{ height:0; border-top:1px solid #000; opacity:.55; }
-    .addr{ font-size:10.5pt; line-height:1.35; white-space:pre-wrap; }
-    .barcodeBox{ display:flex; flex-direction:column; align-items:center; gap:2mm; margin-top:auto; }
-    svg{ width: 100%; height:auto; }
-
-    @media print{
-      body{ background:#fff; }
-      .wrap{ max-width:none; padding:0; }
-      .noPrint{ display:none !important; }
-      .labelStage{ margin:0; }
-      .label{ box-shadow:none; border-radius:0; }
-    }
-  </style>
-</head>
-<body>
-  <div class="wrap">
-    <div class="top noPrint">
-      <div class="card" style="flex:1; min-width:280px;">
-        <div style="font-weight:900;">운송장 라벨 출력</div>
-        <div class="hint">• 이 페이지는 <span class="mono">label.html?waybill=운송장번호</span> 로 열 수 있어.<br/>• iOS에서 Fun Print가 “사진”에서만 뜨면, “사진용 JPG”로 만든 뒤 이미지에서 “사진에 추가/저장” 후 공유해줘.</div>
-      </div>
-      <div style="display:flex; gap:10px; align-items:center;">
-        <button class="btn" id="btnReload">새로고침</button>
-        <button class="btn primary" id="btnShare">공유(앱)</button>
-        <button class="btn" id="btnDownload">PNG 저장</button>
-        <button class="btn" id="btnPhoto">사진용 JPG</button>
-        <button class="btn" id="btnPrint">인쇄</button>
-      </div>
-    </div>
-
-    <div class="labelStage">
-      <div id="label" class="label">
-        <div class="labelInner">
-          <div class="row">
-            <div>
-              <div class="small" style="opacity:.7;">SUNWOO TAKBAE</div>
-              <div class="big" id="wbText">-</div>
-            </div>
-            <div class="tag" id="typeTag">-</div>
-          </div>
-
-          <div class="line"></div>
-
-          <div class="row">
-            <div style="flex:1;">
-              <div class="small" style="opacity:.7;">접수지점</div>
-              <div class="small" style="font-weight:900;" id="storeName">-</div>
-            </div>
-            <div style="flex:1;">
-              <div class="small" style="opacity:.7;">도착점포</div>
-              <div class="small" style="font-weight:900;" id="destStoreName">-</div>
-            </div>
-          </div>
-
-          <div class="line"></div>
-
-          <div>
-            <div class="small" style="opacity:.7;">주소 / 비고</div>
-            <div class="addr" id="addr">-</div>
-          </div>
-
-          <div class="row">
-            <div style="flex:1;">
-              <div class="small" style="opacity:.7;">무게(kg)</div>
-              <div class="small" style="font-weight:900;" id="weight">-</div>
-            </div>
-            <div style="flex:1;">
-              <div class="small" style="opacity:.7;">종류</div>
-              <div class="small" style="font-weight:900;" id="kind">-</div>
-            </div>
-          </div>
-
-          <div class="barcodeBox">
-            <svg id="barcode"></svg>
-            <div class="mono" id="wbMono" style="font-size:11pt; font-weight:900;"></div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="noPrint" style="height:14px;"></div>
-    <div class="card noPrint" id="statusCard">
-      <div style="font-weight:900;">현재 상태</div>
-      <div class="hint" id="statusText" style="margin-top:6px;">불러오는 중...</div>
-    </div>
+<!doctype html><html lang="ko"><head>
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>라벨</title><link rel="stylesheet" href="./style.css">
+<style>
+#label{width:380px;background:#fff;color:#000;border-radius:16px;padding:14px}
+#label h2{margin:0;font-size:16px}
+.muted{color:#333;font-size:12px}
+.small{font-size:12px}
+.rowx{display:flex;justify-content:space-between;gap:10px}
+hr{border:none;border-top:1px solid #ddd;margin:10px 0}
+</style></head>
+<body><div class="wrap">
+<div class="topbar">
+  <div><div class="title">운송장 라벨</div><div class="sub">build 2025-12-31 14:20:46 KST</div></div>
+  <div style="display:flex;gap:10px;flex-wrap:wrap;">
+    <button class="btn" onclick="location.href='./index.html'">메인</button>
+    <button class="btn primary" onclick="window.print()">인쇄</button>
   </div>
+</div>
 
-  <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+<div class="card" style="display:flex;justify-content:center;">
+  <div id="label">
+    <h2>선우택배</h2>
+    <div class="muted">운송장번호: <span class="mono" id="wb">-</span></div>
+    <hr/>
+    <svg id="barcode"></svg>
+    <hr/>
+    <div class="rowx"><div class="small">접수지점</div><div id="from">-</div></div>
+    <div class="rowx"><div class="small">도착/수령</div><div id="to">-</div></div>
+    <div class="rowx"><div class="small">주소</div><div id="addr">-</div></div>
+    <div class="rowx"><div class="small">무게(kg)</div><div id="w">-</div></div>
+  </div>
+</div>
 
-  <script>
-    const $ = (id)=>document.getElementById(id);
+<div class="card"><div class="sub" id="msg">-</div></div>
 
-    function isIOS(){
-      const ua = navigator.userAgent || "";
-      return /iPad|iPhone|iPod/.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
-    }
-
-
-    function decodeB64Url(s){
-      try{
-        const pad = "=".repeat((4 - (s.length % 4)) % 4);
-        const b64 = (s.replace(/-/g,"+").replace(/_/g,"/")) + pad;
-        const str = atob(b64);
-        // decode utf-8
-        const bytes = Uint8Array.from(str, c => c.charCodeAt(0));
-        return new TextDecoder().decode(bytes);
-      }catch(e){ return ""; }
-    }
-
-    function parsePayload(waybill){
-      const wb = String(waybill || "").trim();
-      // 1) query payload
-      const p = qp("payload");
-      if(p){
-        const jsonStr = decodeB64Url(p);
-        if(jsonStr){
-          try{
-            const obj = JSON.parse(jsonStr);
-            // cache for same-device fallback
-            if(wb){
-              try{ localStorage.setItem(`SW_LABEL_PAYLOAD_${wb}`, JSON.stringify(obj)); }catch(e){}
-            }
-            return obj;
-          }catch(e){}
-        }
-      }
-
-      // 2) localStorage fallback (same device)
-      if(wb){
-        try{
-          const raw = localStorage.getItem(`SW_LABEL_PAYLOAD_${wb}`);
-          if(raw) return JSON.parse(raw);
-        }catch(e){}
-      }
-
-      return null;
-    }
-
-    function qp(name){
-      const u = new URL(location.href);
-      return u.searchParams.get(name) || "";
-    }
-
-    async function apiGetReservations(){
-      // 1) preferred: /api/reservations
-      try{
-        const r = await fetch("/api/reservations", { cache:"no-store" });
-        if(r.ok) return await r.json();
-      }catch(e){}
-
-      // 2) fallback: KV direct
-      try{
-        const key = "DELIVERY_RESERVATIONS_V1";
-        const r2 = await fetch(`/api/kv/get?key=${encodeURIComponent(key)}`, { cache:"no-store" });
-        if(r2.ok){
-          const j = await r2.json();
-          if(Array.isArray(j?.value)) return j.value;
-          if(Array.isArray(j)) return j;
-        }
-      }catch(e){}
-
-      return [];
-    }
-
-    function typeLabel(t){
-      const m = { DOMESTIC:"국내택배", INTERNATIONAL:"국제택배", ECONOMY_CVS:"반값택배", RETURN:"반품택배" };
-      return m[t] || t || "-";
-    }
-
-    const KIND_LABEL = {
-      DOCUMENT: "서류",
-      SMALL_BOX: "소형 박스",
-      MEDIUM_BOX: "중형 박스",
-      LARGE_BOX: "대형 박스",
-      FRAGILE: "파손주의",
-      ETC: "기타"
-    };
-
-    function kindLabel(k){
-      const key = (k || "").trim();
-      return key ? (KIND_LABEL[key] || key) : "-";
-    }
-function statusLabel(s){
-      const m = {
-        RESERVED:"예약", WAYBILL_ISSUED:"운송장발급", FINAL:"점포접수", PICKED_UP:"기사수거",
-        ARRIVED_COLLECTION_CENTER:"집화센터도착", ARRIVED_HUB:"허브센터도착", OUTBOUND_PREP:"출고준비",
-        STORE_DEPARTED:"점포출발", ARRIVED_STORE:"점포도착", DELIVERED_TO_CUSTOMER:"고객전달완료",
-        ARRIVED_SUB_TERMINAL:"서브터미널도착", DEPARTED_SUB_TERMINAL:"서브터미널출발",
-        ARRIVED_HUB_TERMINAL:"허브터미널도착", DEPARTED_HUB_TERMINAL:"허브터미널출발",
-        ARRIVED_DEST_TERMINAL:"배송지터미널도착", DELIVERY_STARTED:"배송출발", DELIVERED:"배송완료",
-        AIR_READY:"비행기이륙준비", AIR_DEPARTED:"항공출발", ARRIVED_COUNTRY:"국가도착", DELIVERED_ADDRESS:"주소지배송완료"
-      };
-      return m[s] || s || "-";
-    }
-
-    function pickAddr(rec){
-      // Our records store address in rec.addr (customer 입력) + sometimes rec.package.addr
-      return (rec.addr || rec.package?.addr || rec.address || rec.toAddr || rec.customerAddr || "-");
-    }
-
-    async function load(){
-      const waybill = qp("waybill").trim();
-      if(!waybill){
-        $("statusText").textContent = "운송장 번호가 없어. 예: label.html?waybill=81...";
-        return;
-      }
-
-      // Always show waybill + barcode
-      $("wbText").textContent = waybill;
-      $("wbMono").textContent = waybill;
-      try{ JsBarcode("#barcode", waybill, { format:"CODE128", displayValue:false, margin:0, height:60 }); }catch(e){}
-
-      // 0) payload-first (works even without server)
-      const payload = parsePayload(waybill);
-      if(payload && String(payload.waybillNo||payload.waybill||"") === waybill){
-        // fill from payload immediately
-        $("typeTag").textContent = typeLabel(payload.type);
-        $("storeName").textContent = payload.storeName || "미정";
-        $("destStoreName").textContent = payload.destStoreName || (payload.type==="ECONOMY_CVS" ? "미정" : "-");
-        $("addr").textContent = (payload.addr || payload.address || "-");
-        $("weight").textContent = (payload.weightKg ?? payload.weight ?? "-");
-        $("kind").textContent = kindLabel(payload.kind || payload.kindKey || "");
-        $("statusText").textContent = "라벨 준비됨(앱으로 공유해서 출력해줘!)";
-      }
-
-      // 1) try to refresh from server (if available)
-      let rec = null;
-      try{
-        const all = await apiGetReservations();
-        rec = (all || []).find(x => String(x.waybillNo||"") === waybill) || null;
-      }catch(e){
-        rec = null;
-      }
-
-      if(!rec){
-        if(payload) return;
-        $("statusText").textContent = "서버에서 운송장 정보를 못 가져왔어(서버/함수 미구동). 키오스크에서 전달된 정보로 라벨을 표시 중이야.";
-        return;
-      }
-
-      $("typeTag").textContent = typeLabel(rec.type);
-      $("storeName").textContent = rec.storeName || rec.originStoreName || "미정";
-      $("destStoreName").textContent = rec.destStoreName || rec.destinationStoreName || (rec.type==="ECONOMY_CVS" ? "미정" : "-");
-      $("addr").textContent = pickAddr(rec);
-
-      const w = (rec.package?.weightKg ?? rec.weightKg ?? rec.weight ?? "-");
-      $("weight").textContent = (typeof w === "number") ? String(w) : String(w);
-
-      const kindKey = (rec.package?.kind ?? rec.kind ?? "");
-      $("kind").textContent = kindLabel(kindKey);
-
-      $("statusText").textContent = `상태: ${statusLabel(rec.status)}`;
-    }
-
-    $("btnReload").onclick = () => 
-    $("btnPhoto").onclick = async () => {
-      try{
-        const blob = await exportImageBlob("image/jpeg");
-        const url = URL.createObjectURL(blob);
-        // iOS: 새 탭에서 이미지를 열고 길게 눌러 “사진에 추가/저장” 후 사진 앱에서 공유 -> Fun Print
-        window.open(url, "_blank");
-        setTimeout(()=>URL.revokeObjectURL(url), 15000);
-      }catch(e){
-        alert("JPG 생성 실패. 대신 PNG 저장 또는 인쇄(PDF)로 해줘!");
-      }
-    };
-
-    load();
-    $("btnPrint").onclick = () => window.print();
-
-    async function exportImageBlob(mime){
-      const node = $("label");
-      if(!window.html2canvas) throw new Error("html2canvas 없음");
-      const canvas = await html2canvas(node, { backgroundColor:"#ffffff", scale:2 });
-      const type = mime || "image/png";
-      return await new Promise((resolve)=>canvas.toBlob(resolve, type, 0.92));
-    }
-
-    $("btnDownload").onclick = async () => {
-      try{
-        const blob = await exportImageBlob(isIOS() ? "image/jpeg" : "image/png");
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = `label_${$("wbMono").textContent || "waybill"}.png`;
-        a.click();
-        setTimeout(()=>URL.revokeObjectURL(url), 1500);
-      }catch(e){
-        alert("PNG 저장 실패. 대신 인쇄를 써줘!");
-      }
-    };
-
-    $("btnShare").onclick = async () => {
-      try{
-        if(!navigator.share){
-          alert("이 기기/브라우저는 공유 기능이 없어. PNG 저장 후 앱에서 열어줘!");
-          return;
-        }
-        const blob = await exportImageBlob("image/png");
-        const file = new File([blob], `label_${$("wbMono").textContent || "waybill"}.png`, { type:"image/png" });
-        await navigator.share({
-          title: "운송장 라벨",
-          text: `운송장: ${$("wbMono").textContent || ""}`,
-          files: [file]
-        });
-      }catch(e){
-        // cancel/no support
-      }
-    };
-
-    load();
-  </script>
-</body>
-</html>
+<script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
+<script type="module">
+import * as c from "./client.js";
+const $=id=>document.getElementById(id);
+const inv=c.digitsOnly(new URL(location.href).searchParams.get("invoice_no")||"");
+if(!inv){ $("msg").innerHTML="<span class='err'>invoice_no 없음</span>"; }
+else{
+  $("wb").textContent=inv;
+  try{
+    const rec=await c.apiGet("/api/reservations/byWaybill/"+encodeURIComponent(inv));
+    $("from").textContent=rec.storeName || "-";
+    $("to").textContent=rec.receiver?.name || "-";
+    $("addr").textContent=rec.receiver?.address || "-";
+    $("w").textContent=(rec.package?.weightKg ?? "-");
+    JsBarcode("#barcode", String(inv), {format:"CODE128",displayValue:true,fontSize:12,height:60,margin:0});
+    $("msg").innerHTML="<span class='ok'>라벨 준비됨</span>";
+  }catch(e){
+    $("msg").innerHTML="<span class='err'>서버에서 운송장 찾기 실패</span>";
+  }
+}
+</script>
+</body></html>

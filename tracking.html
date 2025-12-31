@@ -1,323 +1,87 @@
-<!doctype html>
-<html lang="ko">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>배송조회</title>
-  <style>
-    :root{
-      --bg:#0b141a;
-      --card:rgba(255,255,255,.06);
-      --card2:rgba(255,255,255,.04);
-      --text:#e8f0ff;
-      --muted:rgba(255,255,255,.70);
-      --border:rgba(255,255,255,.12);
-      --accent:#2eff90;
-      --danger:#ff5b6a;
-    }
-    *{ box-sizing:border-box; }
-    body{
-      margin:0;
-      font-family:system-ui,-apple-system,Segoe UI,Roboto,Noto Sans KR,Apple SD Gothic Neo,sans-serif;
-      background: radial-gradient(1100px 700px at 30% -10%, rgba(46,255,144,.18), transparent 60%),
-                  radial-gradient(900px 600px at 110% 10%, rgba(110,168,255,.18), transparent 55%),
-                  var(--bg);
-      color:var(--text);
-    }
-    .wrap{ max-width:980px; margin:0 auto; padding:18px; }
-    .topbar{
-      display:flex; gap:12px; align-items:center; justify-content:space-between; flex-wrap:wrap;
-      padding:14px; border:1px solid var(--border); border-radius:18px; background:linear-gradient(180deg,var(--card),var(--card2));
-    }
-    .title{ font-weight:900; font-size:18px; }
-    .sub{ color:var(--muted); font-size:12px; margin-top:4px; }
-    .btn{
-      border:1px solid var(--border);
-      background:transparent;
-      color:var(--text);
-      padding:10px 12px;
-      border-radius:12px;
-      font-weight:900;
-      cursor:pointer;
-    }
-    .btn.primary{ border-color:rgba(46,255,144,.35); }
-    .btn:active{ transform:translateY(1px); }
-    .card{
-      margin-top:14px;
-      padding:14px;
-      border:1px solid var(--border);
-      border-radius:18px;
-      background:linear-gradient(180deg,var(--card),var(--card2));
-    }
-    label{ display:block; font-size:12px; color:var(--muted); margin-bottom:6px; }
-    input{
-      width:100%;
-      padding:12px 12px;
-      border-radius:12px;
-      border:1px solid var(--border);
-      background:rgba(0,0,0,.25);
-      color:var(--text);
-      outline:none;
-      font-size:14px;
-    }
-    .row{ display:grid; grid-template-columns: 2fr 1fr; gap:10px; align-items:end; }
-    .mono{ font-family: ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace; }
-    .grid2{ display:grid; grid-template-columns: 1fr 1fr; gap:10px; }
-    @media (max-width:720px){ .row{ grid-template-columns: 1fr; } .grid2{ grid-template-columns:1fr; } }
-
-    .kv{ display:flex; justify-content:space-between; gap:10px; padding:10px 12px; border:1px solid var(--border); border-radius:14px; background:rgba(0,0,0,.18); }
-    .kv .k{ color:var(--muted); font-size:12px; }
-    .kv .v{ font-weight:900; }
-    .pill{ display:inline-block; padding:3px 8px; border-radius:999px; border:1px solid var(--border); color:var(--muted); font-size:11px; }
-    .err{ color:var(--danger); font-weight:900; }
-    .ok{ color:var(--accent); font-weight:900; }
-
-    .timeline{ margin-top:10px; }
-    .item{
-      padding:12px;
-      border:1px solid var(--border);
-      border-radius:16px;
-      background:rgba(0,0,0,.18);
-      margin-top:10px;
-    }
-    .t1{ font-weight:900; }
-    .t2{ color:var(--muted); font-size:12px; margin-top:6px; }
-  </style>
-</head>
-<body>
-  <div class="wrap">
-    <div class="topbar">
-      <div>
-        <div class="title">배송조회</div>
-        <div class="sub">운송장 번호로 조회하면 tracking.html?invoice_no=... 형태로 표시돼.</div>
-      </div>
-      <div style="display:flex; gap:10px; align-items:center;">
-        <button class="btn" id="goHome">메인으로</button>
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="row">
-        <div>
-          <label>운송장 번호(18자리)</label>
-          <input id="invoice" class="mono" placeholder="예: 81xxxxxxxxxxxxxxxx" />
-        </div>
-        <div>
-          <button class="btn primary" id="btnSearch" type="button">조회</button>
-        </div>
-      </div>
-      <div class="sub" style="margin-top:10px;">• 조회 버튼을 누르면 주소창이 invoice_no 파라미터로 바뀌고, 결과가 아래에 표시돼.</div>
-    </div>
-
-    <div class="card" id="resultCard" style="display:none;">
-      <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;">
-        <div style="font-weight:900; font-size:16px;">조회 결과</div>
-        <span class="pill" id="wbPill">-</span>
-      </div>
-
-      <div style="height:10px;"></div>
-      <div class="grid2">
-        <div class="kv"><div class="k">서비스</div><div class="v" id="svc">-</div></div>
-        <div class="kv"><div class="k">배송사</div><div class="v" id="carrier">-</div></div>
-        <div class="kv"><div class="k">보내는분</div><div class="v" id="sender">-</div></div>
-        <div class="kv"><div class="k">받는분</div><div class="v" id="receiver">-</div></div>
-        <div class="kv"><div class="k">상품종류</div><div class="v" id="kind">-</div></div>
-        <div class="kv"><div class="k">상태</div><div class="v" id="status">-</div></div>
-      </div>
-
-      <div class="timeline" id="timeline"></div>
-    </div>
-
-    <div class="card" id="errCard" style="display:none;">
-      <div class="err" id="errText">-</div>
-    </div>
+<!doctype html><html lang="ko"><head>
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>배송조회</title><link rel="stylesheet" href="./style.css"></head>
+<body><div class="wrap">
+<div class="topbar">
+  <div><div class="title">배송조회</div><div class="sub">build 2025-12-31 14:20:46 KST</div></div>
+  <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+    <button class="btn" onclick="location.href='./index.html'">메인</button>
   </div>
+</div>
 
-  <script>
-    const $ = (id)=>document.getElementById(id);
+<div class="card">
+  <div class="row">
+    <div><input id="inv" class="mono" placeholder="81xxxxxxxxxxxxxxxx"></div>
+    <div><button class="btn primary" id="go" style="width:100%;">조회</button></div>
+  </div>
+  <div class="sub" id="msg" style="margin-top:10px;"></div>
+</div>
 
-    function qp(name){
-      const u = new URL(location.href);
-      return u.searchParams.get(name) || "";
-    }
+<div class="card" id="res" style="display:none;">
+  <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;">
+    <b>조회 결과</b><span class="pill mono" id="wb">-</span>
+  </div>
+  <div class="hr"></div>
+  <div class="row">
+    <div><div class="sub">서비스</div><div id="svc" style="font-weight:900;"></div></div>
+    <div><div class="sub">배송사</div><div id="carrier" style="font-weight:900;"></div></div>
+  </div>
+  <div class="row" style="margin-top:10px;">
+    <div><div class="sub">보내는분</div><div id="sender" style="font-weight:900;"></div></div>
+    <div><div class="sub">받는분</div><div id="receiver" style="font-weight:900;"></div></div>
+  </div>
+  <div class="row" style="margin-top:10px;">
+    <div><div class="sub">무게</div><div id="w" style="font-weight:900;"></div></div>
+    <div><div class="sub">상태</div><div id="status" style="font-weight:900;"></div></div>
+  </div>
+  <div class="hr"></div>
+  <b>배송흐름</b>
+  <div id="tl"></div>
+</div>
 
-    function escapeHtml(s){
-      return String(s ?? "").replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-    }
+<script type="module">
+import * as c from "./client.js";
+const $=id=>document.getElementById(id);
 
-    function typeLabel(t){
-      const m = { DOMESTIC:"국내택배", INTERNATIONAL:"국제택배", ECONOMY_CVS:"반값택배", RETURN:"반품택배" };
-      return m[t] || t || "-";
-    }
+function typeLabel(t){ return ({DOMESTIC:"국내택배",INTERNATIONAL:"국제택배",ECONOMY_CVS:"반값택배",RETURN:"반품택배"})[t]||t||"-"; }
+function carrierLabel(t){
+  if(t==="ECONOMY_CVS") return "선우네트웍스";
+  if(t==="INTERNATIONAL") return "네버랩인터내셔널에어포트(주)(인천국제공항)";
+  return "선우택배";
+}
 
-    function carrierLabel(t){
-      if(t==="ECONOMY_CVS") return "선우네트웍스";
-      if(t==="INTERNATIONAL") return "네버랩인터내셔널에어포트(주)(인천국제공항)";
-      // DOMESTIC + RETURN default
-      return "선우택배";
-    }
+async function run(inv, push){
+  $("msg").textContent="";
+  inv=c.digitsOnly(inv);
+  if(inv.length!==18){ $("msg").innerHTML="<span class='err'>18자리 숫자만</span>"; return; }
+  if(push){
+    const u=new URL(location.href); u.searchParams.set("invoice_no",inv); history.replaceState(null,"",u.toString());
+  }
+  $("inv").value=inv;
+  try{
+    const rec=await c.apiGet("/api/reservations/byWaybill/"+encodeURIComponent(inv));
+    $("res").style.display="";
+    $("wb").textContent=rec.waybillNo;
+    $("svc").textContent=typeLabel(rec.type);
+    $("carrier").textContent=carrierLabel(rec.type);
+    $("sender").textContent=(rec.sender?.name||"-")+" ("+(rec.sender?.phone||"-")+")";
+    $("receiver").textContent=(rec.receiver?.name||"-")+" ("+(rec.receiver?.phone||"-")+")";
+    $("w").textContent=(rec.package?.weightKg ?? "-")+" kg";
+    $("status").textContent=rec.status || "-";
+    const tl=$("tl"); tl.innerHTML="";
+    (rec.events||[]).forEach(e=>{
+      tl.innerHTML += `<div class="card" style="margin-top:10px;background:rgba(0,0,0,.18)">
+        <div style="font-weight:900">${e.place} ${e.message}</div>
+        <div class="sub">${e.time}</div>
+      </div>`;
+    });
+  }catch(e){
+    $("res").style.display="none";
+    $("msg").innerHTML="<span class='err'>등록된 운송장이 아님</span> (발급 후 바로 조회해봐)";
+  }
+}
 
-    const KIND_LABEL = {
-      DOCUMENT:"서류",
-      SMALL_BOX:"소형 박스",
-      MEDIUM_BOX:"중형 박스",
-      LARGE_BOX:"대형 박스",
-      FRAGILE:"파손주의",
-      ETC:"기타"
-    };
-    function kindLabel(k){
-      const key = (k || "").trim();
-      return key ? (KIND_LABEL[key] || key) : "-";
-    }
-
-    function statusLabel(s){
-      const m = {
-        RESERVED:"예약",
-        WAYBILL_ISSUED:"운송장발급",
-        FINAL:"점포접수",
-        PICKED_UP:"기사수거",
-        ARRIVED_COLLECTION_CENTER:"집화센터도착",
-        ARRIVED_HUB:"허브센터도착",
-        OUTBOUND_PREP:"출고준비",
-        STORE_DEPARTED:"점포출발",
-        ARRIVED_STORE:"점포도착",
-        DELIVERED_TO_CUSTOMER:"고객전달완료",
-
-        ARRIVED_SUB_TERMINAL:"서브터미널도착",
-        DEPARTED_SUB_TERMINAL:"서브터미널출발",
-        ARRIVED_HUB_TERMINAL:"허브터미널도착",
-        DEPARTED_HUB_TERMINAL:"허브터미널출발",
-        ARRIVED_DEST_TERMINAL:"배송지터미널도착",
-        DELIVERY_STARTED:"배송출발",
-        DELIVERED:"배송완료",
-
-        AIR_READY:"비행기 이륙 준비",
-        AIR_DEPARTED:"항공 출발",
-        ARRIVED_COUNTRY:"국가 도착",
-        DELIVERED_ADDRESS:"주소지 배송완료"
-      };
-      return m[s] || s || "-";
-    }
-
-    async function apiGetReservations(){
-      const r = await fetch("/api/reservations", { cache:"no-store" });
-      if(!r.ok) throw new Error("API error");
-      return await r.json();
-    }
-
-    function ensureEvents(rec){
-      if(!rec.events || !Array.isArray(rec.events)) rec.events = [];
-      return rec.events;
-    }
-
-    function renderEvents(rec){
-      const events = (rec.events && Array.isArray(rec.events)) ? rec.events.slice() : [];
-      // fallback for older fields
-      if(events.length === 0){
-        if(rec.storeAcceptedAt && rec.storeName) events.push({ at: rec.storeAcceptedAt, place: rec.storeName, message:"점포접수 하였습니다" });
-        if(rec.pickedAt && rec.storeName) events.push({ at: rec.pickedAt, place: rec.storeName, message:"기사수거 하였습니다" });
-      }
-      // sort by at asc
-      events.sort((a,b)=>String(a.at||"").localeCompare(String(b.at||"")));
-      return events;
-    }
-
-    function showErr(msg){
-      $("resultCard").style.display = "none";
-      $("errCard").style.display = "";
-      $("errText").textContent = msg;
-    }
-
-    function showResult(){
-      $("errCard").style.display = "none";
-      $("resultCard").style.display = "";
-    }
-
-    function fill(rec){
-      $("wbPill").textContent = rec.waybillNo || "-";
-      $("svc").textContent = typeLabel(rec.type);
-      $("carrier").textContent = carrierLabel(rec.type);
-      $("sender").textContent = (rec.sender?.name ? `${rec.sender.name} (${rec.sender.phone||"-"})` : "-");
-      $("receiver").textContent = (rec.receiver?.name ? `${rec.receiver.name} (${rec.receiver.phone||"-"})` : "-");
-      const k = rec.package?.kind ?? rec.kind ?? "";
-      $("kind").textContent = kindLabel(k);
-      $("status").textContent = statusLabel(rec.status);
-
-      const events = renderEvents(rec);
-      const tl = $("timeline");
-      tl.innerHTML = `<div style="margin-top:14px; font-weight:900;">배송흐름</div>` + (events.length? "" : `<div class="sub">아직 기록된 배송 단계가 없어.</div>`);
-      events.forEach(e=>{
-        const place = escapeHtml(e.place || "-");
-        const msg = escapeHtml(e.message || "-");
-        const at = escapeHtml(e.at || "-");
-        tl.innerHTML += `
-          <div class="item">
-            <div class="t1">${place} ${msg}</div>
-            <div class="t2">${at}</div>
-          </div>
-        `;
-      });
-    }
-
-    function normalizeWb(s){
-      return String(s||"").replace(/\D/g,"").trim();
-    }
-
-    function extractList(json){
-      if(Array.isArray(json)) return json;
-      if(json && Array.isArray(json.items)) return json.items;
-      if(json && Array.isArray(json.reservations)) return json.reservations;
-      if(json && Array.isArray(json.data)) return json.data;
-      return [];
-    }
-
-    async function doSearch(wb, pushUrl){
-      const invoiceRaw = String(wb || "").trim();
-      const invoice = normalizeWb(invoiceRaw);
-
-      if(!invoice){ showErr("운송장 번호를 입력해줘!"); return; }
-      if(invoice.length !== 18){ showErr("운송장 번호는 숫자 18자리여야 해!"); return; }
-
-      if(pushUrl){
-        const u = new URL(location.href);
-        u.searchParams.set("invoice_no", invoice);
-        history.replaceState(null, "", u.toString());
-      }
-
-      $("invoice").value = invoice;
-
-      let json;
-      try{
-        const r = await fetch("/api/reservations", { cache:"no-store" });
-        if(!r.ok) throw new Error("API error");
-        json = await r.json();
-      }catch(e){
-        showErr("서버에서 조회를 못 했어. 잠깐 후 다시 해줘!");
-        return;
-      }
-
-      const all = extractList(json);
-      const rec = all.find(x => normalizeWb(x.waybillNo || x.waybill || x.invoice_no || x.invoiceNo || "") === invoice);
-
-      if(!rec){
-        // 도움 메시지: 서버에 데이터는 있지만 해당 번호가 없을 수 있음
-        const hint = all.length ? `서버에는 ${all.length}건이 있지만, 이 번호는 못 찾았어.` : "서버에 저장된 접수 내역이 아직 없어.";
-        showErr(`등록된 운송장이 아님. (${hint})`);
-        return;
-      }
-
-      showResult();
-      fill(rec);
-    }
-
-    $("btnSearch").onclick = () => doSearch($("invoice").value, true);
-    $("goHome").onclick = () => { window.location.href = "./index.html"; };
-
-    // auto-run if invoice_no exists
-    const inv = qp("invoice_no");
-    if(inv){
-      doSearch(inv, false);
-    }
-  </script>
-</body>
-</html>
+$("go").onclick=()=>run($("inv").value,true);
+const q=new URL(location.href).searchParams.get("invoice_no"); if(q) run(q,false);
+</script>
+</body></html>

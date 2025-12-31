@@ -1,852 +1,180 @@
-<!doctype html>
-<html lang="ko">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>키오스크</title>
-  <style>
-    :root{
-      --bg:#0b1020; --text:#eaf0ff; --muted:#a9b3d7; --accent:#7aa2ff;
-      --good:#35d07f; --warn:#ffcc66; --bad:#ff6b6b;
-      --card: rgba(0,0,0,.18); --shadow: 0 18px 40px rgba(0,0,0,.35); --radius:18px;
-      --line: rgba(255,255,255,.10);
-    }
-    *{box-sizing:border-box}
-    body{
-      margin:0;
-      font-family: ui-sans-serif, system-ui, -apple-system, "Apple SD Gothic Neo", "Noto Sans KR", Segoe UI, Roboto, Helvetica, Arial;
-      background:
-        radial-gradient(1200px 600px at 20% 10%, rgba(122,162,255,.18), transparent 55%),
-        radial-gradient(900px 500px at 80% 0%, rgba(53,208,127,.12), transparent 55%),
-        var(--bg);
-      color:var(--text);
-      min-height:100vh;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      padding:22px;
-    }
-    .panel{
-      width:min(1050px, 100%);
-      background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
-      border:1px solid rgba(255,255,255,.08);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      overflow:hidden;
-    }
-    header{
-      padding:18px 20px;
-      border-bottom:1px solid rgba(255,255,255,.08);
-      display:flex; align-items:center; justify-content:space-between; gap:12px;
-      background: linear-gradient(180deg, rgba(122,162,255,.12), rgba(0,0,0,0));
-    }
-    .brand{display:flex; align-items:center; gap:12px;}
-    .logo{
-      width:38px; height:38px; border-radius:12px;
-      background: linear-gradient(135deg, rgba(122,162,255,.65), rgba(53,208,127,.55));
-      box-shadow: 0 10px 20px rgba(0,0,0,.28);
-    }
-    h1{margin:0; font-size:16px;}
-    .sub{font-size:12px; color:var(--muted); margin-top:2px;}
-    .badge{
-      font-size:12px; padding:7px 10px; border:1px solid rgba(255,255,255,.12);
-      border-radius:999px; color:var(--muted); background: rgba(0,0,0,.18);
-      user-select:none; white-space:nowrap;
-    }
-    .content{padding:16px;}
-
-    .grid{display:grid; grid-template-columns: 1fr 1fr; gap:14px;}
-    @media (max-width: 700px){ .grid{grid-template-columns: 1fr;} }
-
-    .bigbtn{
-      border:1px solid rgba(255,255,255,.10);
-      background: linear-gradient(180deg, rgba(122,162,255,.09), rgba(0,0,0,.18));
-      border-radius: 18px;
-      padding:18px;
-      text-align:left;
-      cursor:pointer;
-      min-height:110px;
-      display:flex;
-      flex-direction:column;
-      justify-content:space-between;
-      gap:10px;
-      transition: transform .08s ease, border-color .15s ease;
-    }
-    .bigbtn:hover{ transform: translateY(-2px); border-color: rgba(122,162,255,.35); }
-    .t{font-size:18px; font-weight:900; display:flex; gap:10px; flex-wrap:wrap; align-items:center;}
-    .pill{
-      font-size:12px; padding:5px 10px; border-radius:999px;
-      border:1px solid rgba(255,255,255,.12); color:var(--muted); background: rgba(0,0,0,.14);
-    }
-    .d{font-size:13px; color:var(--muted); line-height:1.45;}
-
-    .card{
-      margin-top:14px;
-      background: var(--card);
-      border:1px solid rgba(255,255,255,.08);
-      border-radius: 18px;
-      padding:16px;
-    }
-
-    label{display:block; font-size:12px; color:var(--muted); margin-bottom:6px;}
-    input, textarea, select{
-      width:100%;
-      padding:12px 12px;
-      border-radius: 14px;
-      border:1px solid rgba(255,255,255,.10);
-      background: rgba(16,24,48,.35);
-      color: var(--text);
-      outline:none;
-    }
-    textarea{min-height:90px; resize:vertical;}
-    .row{display:grid; grid-template-columns: 1fr 1fr; gap:12px;}
-    @media (max-width: 720px){ .row{grid-template-columns: 1fr;} }
-
-    .actions{display:flex; gap:10px; justify-content:space-between; margin-top:14px; flex-wrap:wrap;}
-    .btn{
-      border:none;
-      border-radius: 14px;
-      padding:12px 14px;
-      cursor:pointer;
-      color:var(--text);
-      background: rgba(0,0,0,.12);
-      border:1px solid rgba(255,255,255,.10);
-      min-width:140px;
-      font-weight:900;
-    }
-    .btn.primary{
-      background: linear-gradient(180deg, rgba(122,162,255,.48), rgba(122,162,255,.18));
-      border-color: rgba(122,162,255,.40);
-    }
-    .btn.good{
-      background: linear-gradient(180deg, rgba(53,208,127,.38), rgba(53,208,127,.14));
-      border-color: rgba(53,208,127,.35);
-    }
-    .btn.ghost{ color: var(--muted); }
-
-    .mono{font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; letter-spacing:.3px;}
-    .hint{font-size:12px; color:var(--muted); line-height:1.4; margin-top:10px;}
-    .err{color: var(--bad); font-weight:900;}
-    .ok{color: var(--good); font-weight:900;}
-
-    .list{
-      border:1px solid rgba(255,255,255,.08);
-      background: rgba(0,0,0,.16);
-      border-radius: 16px;
-      overflow:hidden;
-      max-height: 420px;
-      overflow:auto;
-      margin-top:10px;
-    }
-    .item{ padding:12px 12px; border-bottom:1px solid rgba(255,255,255,.06); }
-    .item:last-child{ border-bottom:none; }
-    .tag{
-      display:inline-block;
-      padding:4px 8px;
-      border-radius:999px;
-      border:1px solid rgba(255,255,255,.10);
-      background: rgba(16,24,48,.35);
-      color: var(--muted);
-      font-size:11px;
-      white-space:nowrap;
-    }
-
-    .twoBtns{display:grid; grid-template-columns: 1fr 1fr; gap:12px; margin-top:12px;}
-    @media (max-width: 520px){ .twoBtns{grid-template-columns: 1fr;} }
-
-    .req{color: var(--warn); font-weight:900;}
-  </style>
-</head>
-<body>
-  <div id="storeGate" style="position:fixed; inset:0; background:rgba(0,0,0,.45); display:flex; align-items:center; justify-content:center; padding:16px; z-index:9999;">
-    <div class="card" style="max-width:520px; width:100%;">
-      <div style="font-weight:900; font-size:16px;">점포코드 입력</div>
-      <div class="sub">이 키오스크는 점포코드 확인 후 사용 가능</div>
-      <div style="height:12px;"></div>
-      <label>점포코드</label>
-      <input id="kg_storeCode" class="mono" placeholder="예: STORE-001" />
-      <div style="height:10px;"></div>
-      <button class="btn primary" id="kg_enter">입장</button>
-      <div class="card" id="kg_err" style="display:none; margin-top:12px;"></div>
-    </div>
+<!doctype html><html lang="ko"><head>
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>키오스크</title><link rel="stylesheet" href="./style.css"></head>
+<body><div class="wrap">
+<div class="topbar">
+  <div><div class="title">키오스크</div><div class="sub">build 2025-12-31 14:20:46 KST · 점포코드로 로그인 후 발급</div></div>
+  <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+    <span class="pill" id="clock">--:--:--</span>
+    <button class="btn" onclick="location.href='./index.html'">메인</button>
   </div>
-
-  <div class="panel">
-    <header>
-      <div class="brand">
-        <div class="logo" aria-hidden="true"></div>
-        <div>
-          <h1>키오스크</h1>
-          <div class="sub">현장접수(필수값 입력) · 예약접수(예약번호 검증)</div>
-        </div>
-      </div>
-      <div class="badge" id="clock">—</div>
-    </header>
-
-    <div class="content">
-      <!-- HOME -->
-      <div id="view_home">
-        <div class="grid">
-          <button class="bigbtn" data-type="DOMESTIC">
-            <div class="t">국내택배 <span class="pill">현장접수</span></div>
-            <div class="d">회원/비회원 → 즉시 운송장 발급 (81…)</div>
-          </button>
-          <button class="bigbtn" data-type="INTERNATIONAL">
-            <div class="t">국제택배 <span class="pill">현장접수</span></div>
-            <div class="d">회원/비회원 → 즉시 운송장 발급 (23…)</div>
-          </button>
-          <button class="bigbtn" data-type="ECONOMY_CVS">
-            <div class="t">반값택배 <span class="pill">현장접수</span></div>
-            <div class="d">편의점 주소 필수 · 최대 소요기간 6일 (30…)</div>
-          </button>
-          <button class="bigbtn" data-type="RETURN">
-            <div class="t">반품접수 <span class="pill">현장접수</span></div>
-            <div class="d">회원/비회원 → 즉시 운송장 발급 (37…)</div>
-          </button>
-
-          <button class="bigbtn" id="goReserve">
-            <div class="t">예약접수 <span class="pill">예약번호</span></div>
-            <div class="d">예약번호가 존재하면 운송장 발급</div>
-          </button>
-          <button class="bigbtn" id="goBack">
-            <div class="t">기본 화면 <span class="pill">index</span></div>
-            <div class="d">index.html로 돌아가기</div>
-          </button>
-        </div>
-
-        <div class="card">
-          <div class="hint">
-            • 필수 입력: 주소(또는 편의점 주소), 무게, 물품종류(박스 종류), 보내는/받는 사람 기본 정보<br>
-            • 운송장 18자리: prefix(81/23/30/37) + 16자리 숫자
-          </div>
-        </div>
-      </div>
-
-      <!-- WALK-IN -->
-      <div id="view_walkin" style="display:none;">
-        <div class="card" style="margin-top:0;">
-          <div style="font-weight:900; font-size:16px;" id="walkinTitle">현장접수</div>
-          <div class="sub" id="k_storeBadge" style="font-weight:700;"></div>
-          <div class="sub" id="walkinSub">회원/비회원 선택 → 필수 입력 → 운송장 즉시 발급</div>
-
-          <div class="twoBtns">
-            <button class="btn primary" id="btnMember">회원접수</button>
-            <button class="btn" id="btnGuest">비회원접수</button>
-          </div>
-
-          <div class="actions">
-            <button class="btn ghost" id="walkinHome">처음으로</button>
-            <button class="btn" id="walkinRefresh">최근 내역 새로고침</button>
-          </div>
-        </div>
-
-        <div class="card" id="walkinFormCard" style="display:none;">
-          <div style="font-weight:900; font-size:14px;">현장접수 입력 (<span class="req">필수</span>는 반드시 입력)</div>
-
-          <div style="height:12px;"></div>
-
-          <div class="row">
-            <div>
-              <label>보내는 사람 이름 <span class="req">*</span></label>
-              <input id="w_sName" placeholder="예: 홍길동" />
-            </div>
-            <div>
-              <label>보내는 사람 연락처 <span class="req">*</span></label>
-              <input id="w_sPhone" placeholder="예: 010-1234-5678" />
-            </div>
-            <div>
-              <label>받는 사람 이름 <span class="req">*</span></label>
-              <input id="w_rName" placeholder="예: 김철수" />
-            </div>
-            <div>
-              <label>받는 사람 연락처 <span class="req">*</span></label>
-              <input id="w_rPhone" placeholder="예: 010-0000-0000" />
-            </div>
-
-            <div style="grid-column:1/-1">
-              <label id="addrLabel">주소 <span class="req">*</span></label>
-              <input id="w_addr" placeholder="예: 서울시 ○○구 ○○로 123" />
-              <div class="hint" id="addrHint" style="margin-top:6px;"></div>
-            </div>
-
-            <div>
-              <label>무게(kg) <span class="req">*</span></label>
-              <input id="w_weight" type="number" step="0.01" min="0.01" placeholder="예: 1.25" />
-            </div>
-            <div>
-              <label>물품/박스 종류 <span class="req">*</span></label>
-              <select id="w_kind">
-                <option value="">선택</option>
-                <option value="DOCUMENT">서류</option>
-                <option value="SMALL_BOX">소형 박스</option>
-                <option value="MEDIUM_BOX">중형 박스</option>
-                <option value="LARGE_BOX">대형 박스</option>
-                <option value="FRAGILE">파손주의</option>
-                <option value="ETC">기타</option>
-              </select>
-            </div>
-
-            <div id="intlBlock" style="grid-column:1/-1; display:none;">
-              <label>국가/지역(국제택배) <span class="req">*</span></label>
-              <input id="w_country" placeholder="예: Japan / USA" />
-            
-              <div style="height:8px;"></div>
-              <label>해외주소 <span class="req">*</span></label>
-              <textarea id="w_overseas" placeholder="예: 123 Main St, City, State/Province, Postal Code"></textarea>
 </div>
 
-            <div style="grid-column:1/-1">
-              <label>메모(선택)</label>
-              <textarea id="w_memo" placeholder="예: 반값택배 안내: 최대 소요기간 6일"></textarea>
-            </div>
-          </div>
+<div class="card" id="gate">
+  <b>점포 로그인</b>
+  <div class="row" style="margin-top:10px;">
+    <div><input id="g_name" placeholder="점포명"></div>
+    <div><input id="g_code" placeholder="점포코드"></div>
+  </div>
+  <div style="margin-top:10px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+    <button class="btn primary" id="login">로그인</button>
+    <span class="sub" id="gmsg"></span>
+  </div>
+</div>
 
-          <div class="actions">
-            <button class="btn good" id="w_issue">운송장 발급</button>
-            <button class="btn" id="w_cancel">취소</button>
-          </div>
-        </div>
+<div class="card" id="app" style="display:none;">
+  <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;">
+    <div><b id="store">-</b><div class="sub">예약접수 / 현장접수</div></div>
+    <button class="btn" id="logout">로그아웃</button>
+  </div>
+  <div class="hr"></div>
 
-        <div class="card" id="walkinResult" style="display:none;"></div>
+  <div class="row">
+    <button class="btn" id="showRes">예약접수</button>
+    <button class="btn" id="showWalk">현장접수</button>
+  </div>
 
-        <div class="card">
-          <div style="font-weight:900; font-size:14px;">최근 운송장 발급(20개)</div>
-          <div class="sub">WAYBILL_ISSUED 이상만 표시</div>
-          <div class="list" id="walkinList"></div>
-        </div>
+  <div class="card" id="resBox" style="display:none;">
+    <b>예약번호로 발급</b>
+    <div class="row" style="margin-top:10px;">
+      <div><input id="resNo" class="mono" placeholder="12자리 예약번호"></div>
+      <div><button class="btn primary" id="issueRes" style="width:100%;">발급</button></div>
+    </div>
+    <div class="sub" id="resMsg"></div>
+  </div>
+
+  <div class="card" id="walkBox" style="display:none;">
+    <b>현장접수</b>
+    <div class="row" style="margin-top:10px;">
+      <div>
+        <label class="sub">서비스</label>
+        <select id="w_type"><option value="DOMESTIC">국내</option><option value="INTERNATIONAL">국제</option><option value="ECONOMY_CVS">반값</option><option value="RETURN">반품</option></select>
       </div>
+      <div><label class="sub">무게(kg)</label><input id="w_w" type="number" step="0.1" min="0.1"></div>
+    </div>
+    <div class="row" style="margin-top:10px;">
+      <div><input id="w_sname" placeholder="보내는분 이름"></div>
+      <div><input id="w_sphone" placeholder="보내는분 전화"></div>
+    </div>
+    <div style="margin-top:10px;"><input id="w_saddr" placeholder="보내는분 주소"></div>
 
-      <!-- RESERVATION -->
-      <div id="view_reserve" style="display:none;">
-        <div class="card" style="margin-top:0;">
-          <div style="font-weight:900; font-size:16px;">예약접수</div>
-          <div class="sub">예약번호가 존재해야 발급 가능</div>
+    <div class="row" style="margin-top:10px;">
+      <div><input id="w_rname" placeholder="받는분 이름"></div>
+      <div><input id="w_rphone" placeholder="받는분 전화"></div>
+    </div>
+    <div style="margin-top:10px;"><input id="w_raddr" placeholder="받는분/도착점포 주소"></div>
 
-          <div class="row" style="grid-template-columns: 2fr 1fr; align-items:end; margin-top:12px;">
-            <div>
-              <label>예약번호</label>
-              <input id="reserveNo" class="mono" placeholder="예: RSV-20251227-ABCDE" />
-            </div>
-            <div>
-              <button class="btn primary" id="r_issue">운송장 발급</button>
-            </div>
-          </div>
-
-          <div class="actions">
-            <button class="btn ghost" id="reserveHome">처음으로</button>
-            <button class="btn" id="reserveRefresh">예약 목록 새로고침</button>
-          </div>
-        </div>
-
-        <div class="card" id="reserveResult" style="display:none;"></div>
-
-        <div class="card">
-          <div style="font-weight:900; font-size:14px;">최근 예약(20개)</div>
-          <div class="sub">예약번호 확인용</div>
-          <div class="list" id="reserveList"></div>
-        </div>
-      </div>
+    <div style="margin-top:10px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+      <button class="btn primary" id="issueWalk">발급</button>
+      <span class="sub" id="walkMsg"></span>
     </div>
   </div>
 
-<script>
-  const $ = (id) => document.getElementById(id);
+  <div class="card" id="done" style="display:none;">
+    <b>발급 완료</b>
+    <div class="sub">운송장번호: <span class="mono" id="wb">-</span></div>
+    <div style="margin-top:10px;display:flex;gap:10px;flex-wrap:wrap;">
+      <button class="btn primary" id="print">라벨</button>
+      <button class="btn" id="track">배송조회</button>
+    </div>
+  </div>
+</div>
 
-  function openLabel(arg){
-    // arg can be waybill string/number OR a record object
-    const wb = (typeof arg === "string" || typeof arg === "number") ? String(arg).trim() : String(arg?.waybillNo || "").trim();
-    if(!wb){ alert("운송장 번호가 없어!"); return; }
+<script type="module">
+import * as c from "./client.js";
+const $=id=>document.getElementById(id);
+c.startClock($("clock"));
 
-    let url = `label.html?waybill=${encodeURIComponent(wb)}`;
+let store=null;
+let lastWb=null;
+function show(which){
+  $("resBox").style.display = which==="res" ? "" : "none";
+  $("walkBox").style.display = which==="walk" ? "" : "none";
+  $("done").style.display = "none";
+}
 
-    // Build small payload so label works even when API isn't reachable
-    let payloadObj = null;
-    if(arg && typeof arg === "object"){
-      payloadObj = {
-        waybillNo: wb,
-        type: arg.type || "",
-        storeName: arg.storeName || "",
-        destStoreName: arg.destStoreName || "",
-        addr: (arg.addr || arg.package?.addr || ""),
-        weightKg: (arg.package?.weightKg ?? arg.weightKg ?? arg.weight ?? ""),
-        kind: (arg.package?.kind ?? arg.kind ?? "")
-      };
+$("showRes").onclick=()=>show("res");
+$("showWalk").onclick=()=>show("walk");
 
-      // Save to localStorage too (same device fallback)
-      try{
-        localStorage.setItem(`SW_LABEL_PAYLOAD_${wb}`, JSON.stringify(payloadObj));
-      }catch(e){}
-    }
+$("logout").onclick=()=>{
+  store=null; lastWb=null;
+  $("app").style.display="none";
+  $("gate").style.display="";
+  $("gmsg").textContent="";
+};
 
-    // Also attach payload in URL (works cross-tab)
-    if(payloadObj){
-      try{
-        const jsonStr = JSON.stringify(payloadObj);
-        const bytes = new TextEncoder().encode(jsonStr);
-        let bin = "";
-        bytes.forEach(b => bin += String.fromCharCode(b));
-        const b64 = btoa(bin).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
-        url += `&payload=${b64}`;
-      }catch(e){}
-    }
-
-    window.open(url, "_blank");
+$("login").onclick=async()=>{
+  $("gmsg").textContent="";
+  try{
+    const r=await c.apiPost("/api/stores/login",{name:$("g_name").value.trim(), code:$("g_code").value.trim()});
+    store=r.store;
+    $("store").textContent=store.name;
+    $("gate").style.display="none";
+    $("app").style.display="";
+    show("res");
+  }catch(e){
+    $("gmsg").innerHTML="<span class='err'>없는 점포</span>";
   }
+};
 
+function done(wb){
+  lastWb=wb;
+  $("wb").textContent=wb;
+  $("done").style.display="";
+}
 
-  // ==== Persistent storage (Netlify Functions + Blobs) ====
-  // Must match index.html keys
-  const STORAGE_KEYS = { RES: "DELIVERY_RESERVATIONS_V1", STORES: "DELIVERY_STORES_V1" };
+$("issueRes").onclick=async()=>{
+  $("resMsg").textContent="";
+  try{
+    const rn=c.digitsOnly($("resNo").value);
+    if(rn.length!==12) throw new Error("예약번호 12자리");
+    const rec=await c.apiGet("/api/reservations/byReserve/"+encodeURIComponent(rn));
+    if(rec.waybillNo){ done(rec.waybillNo); $("resMsg").innerHTML="<span class='ok'>이미 발급됨</span>"; return; }
+    const wb=c.make18(c.prefixByType(rec.type));
+    rec.waybillNo=wb;
+    rec.status="WAYBILL_ISSUED";
+    rec.storeName=store.name;
+    rec.events = rec.events || [];
+    rec.events.push({time:new Date().toISOString(), place:store.name, message:"점포접수 하였습니다"});
+    await c.apiPost("/api/reservations/upsert", rec);
+    $("resMsg").innerHTML="<span class='ok'>발급됨</span>";
+    done(wb);
+  }catch(e){
+    $("resMsg").innerHTML="<span class='err'>실패:</span> "+e.message;
+  }
+};
 
-  // KIOSK store gate
-  let kioskStore = null; // {name, code}
-  async function loadStores(){ return await apiGet(STORAGE_KEYS.STORES, []); }
-
-  async function initStoreGate(){
-    const gate = document.getElementById("storeGate");
-    const err = document.getElementById("kg_err");
-    const input = document.getElementById("kg_storeCode");
-    const btn = document.getElementById("kg_enter");
-
-    btn.onclick = async () => {
-      const code = input.value.trim();
-      err.style.display = "none";
-      if(!code){ err.style.display=""; err.innerHTML='<div class="err">점포코드를 입력해줘!</div>'; return; }
-      const stores = await loadStores();
-      const s = stores.find(x => x.code === code);
-      if(!s){
-        err.style.display=""; err.innerHTML='<div class="err">없는 점포코드야. 점포 등록을 먼저 해줘!</div>';
-        return;
-      }
-      kioskStore = s;
-      const badge = document.getElementById("k_storeBadge");
-      if(badge) badge.textContent = `점포: ${s.name} (${s.code})`;
-      gate.style.display = "none";
+$("issueWalk").onclick=async()=>{
+  $("walkMsg").textContent="";
+  try{
+    const type=$("w_type").value;
+    const sender={name:$("w_sname").value.trim(),phone:$("w_sphone").value.trim(),address:$("w_saddr").value.trim()};
+    const receiver={name:$("w_rname").value.trim(),phone:$("w_rphone").value.trim(),address:$("w_raddr").value.trim()};
+    const weightKg=Number($("w_w").value);
+    if(!sender.name||!sender.phone||!sender.address) throw new Error("보내는분 필수");
+    if(!receiver.name||!receiver.phone||!receiver.address) throw new Error("받는분/점포 주소 필수");
+    if(!weightKg||weightKg<=0) throw new Error("무게 입력");
+    const wb=c.make18(c.prefixByType(type));
+    const rec={
+      reserveNo: "WALKIN_"+wb,
+      waybillNo: wb,
+      type,
+      status:"WAYBILL_ISSUED",
+      sender, receiver,
+      package:{weightKg},
+      storeName: store.name,
+      courier:null,
+      events:[{time:new Date().toISOString(), place:store.name, message:"점포접수 하였습니다"}]
     };
+    await c.apiPost("/api/reservations/upsert", rec);
+    $("walkMsg").innerHTML="<span class='ok'>발급됨</span>";
+    done(wb);
+  }catch(e){
+    $("walkMsg").innerHTML="<span class='err'>실패:</span> "+e.message;
   }
-  const API_BASE = "/api";
-  const useLocalFallback = false;
-  const mem = {};
+};
 
-  async function apiGet(key, fallback){
-    if(useLocalFallback){
-      try{ return JSON.parse(localStorage.getItem(key) || JSON.stringify(fallback)); }
-      catch{ return fallback; }
-    }
-    if(key in mem) return mem[key];
-    try{
-      const res = await fetch(`${API_BASE}/kv/get?key=${encodeURIComponent(key)}`, { cache:"no-store" });
-      if(!res.ok) throw new Error("GET failed");
-      const json = await res.json();
-      mem[key] = json.value ?? fallback;
-      return mem[key];
-    }catch(e){
-      try{
-        const v = JSON.parse(localStorage.getItem(key) || JSON.stringify(fallback));
-        mem[key] = v;
-        return v;
-      }catch{
-        return fallback;
-      }
-    }
-  }
-
-  async function apiSet(key, value){
-    mem[key] = value;
-    if(useLocalFallback){
-      localStorage.setItem(key, JSON.stringify(value));
-      return;
-    }
-    try{
-      const res = await fetch(`${API_BASE}/kv/set`, {
-        method:"POST",
-        headers:{ "content-type":"application/json" },
-        body: JSON.stringify({ key, value })
-      });
-      if(!res.ok) throw new Error("POST failed");
-    }
-    catch(e){
-      throw e;
-    }
-  }
-
-  const TYPE_LABEL = {
-    DOMESTIC: "국내",
-    INTERNATIONAL: "국제",
-    ECONOMY_CVS: "반값택배",
-    RETURN: "반품"
-  };
-
-  const PREFIX = {
-    DOMESTIC: "81",
-    INTERNATIONAL: "23",
-    ECONOMY_CVS: "30",
-    RETURN: "37"
-  };
-
-  function nowStr(){
-    const d = new Date();
-    const pad = (n)=> String(n).padStart(2,"0");
-    return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
-  }
-
-  function tick(){
-    const d = new Date();
-    const pad = (n)=> String(n).padStart(2,"0");
-    $("clock").textContent = `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
-  }
-  setInterval(tick, 1000); tick();
-
-  async function loadAll(){
-    return await apiGet(STORAGE_KEYS.RES, []);
-  }
-  async function saveAll(arr){
-    await apiSet(STORAGE_KEYS.RES, arr);
-  }
-
-  async function upsert(rec){
-    const arr = await loadAll();
-    const idx = arr.findIndex(x => x.reserveNo === rec.reserveNo);
-    if(idx >= 0) arr[idx] = rec;
-    else arr.unshift(rec);
-    await saveAll(arr);
-  }
-
-  async function findByReserveNo(resNo){
-    const arr = await loadAll();
-    return arr.find(x => x.reserveNo === resNo) || null;
-  }
-
-  // 18 digits: 2-digit prefix + 16 digits
-  function makeWaybill(prefix2){
-    const need = 16;
-    const bytes = new Uint8Array(need);
-    crypto.getRandomValues(bytes);
-    let s = prefix2;
-    for(let i=0;i<need;i++) s += String(bytes[i] % 10);
-    return s;
-  }
-
-  function makeWalkinReserveNo(){
-    const d = new Date();
-    const y = d.getFullYear();
-    const m = String(d.getMonth()+1).padStart(2,"0");
-    const day = String(d.getDate()).padStart(2,"0");
-    const rand = Math.random().toString(36).slice(2,7).toUpperCase();
-    return `WALKIN-${y}${m}${day}-${rand}`;
-  }
-
-  function escapeAttr(s){ return String(s||"").replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
-
-  function escapeHtml(s){
-    return String(s).replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;");
-  }
-
-  function show(view){
-    ["view_home","view_walkin","view_reserve"].forEach(v => $(v).style.display = "none");
-    $(view).style.display = "";
-  }
-
-  // NAV
-  $("goBack").onclick = () => window.location.href = "./index.html";
-  $("goReserve").onclick = async () => { show("view_reserve"); await renderReserveList(); $("reserveResult").style.display="none"; };
-
-  // Home type buttons -> walk-in flow
-  let currentType = null;
-  let currentCustomerKind = null; // MEMBER or GUEST
-
-  function configureWalkinForType(){
-    $("walkinTitle").textContent = `${TYPE_LABEL[currentType]} 현장접수`;
-
-    // Address label + hint
-    if(currentType === "ECONOMY_CVS"){
-      $("addrLabel").innerHTML = `편의점 주소/지점명 <span class="req">*</span>`;
-      $("w_addr").placeholder = "예: GS25 강남점 / 서울시 강남구 ...";
-      $("addrHint").textContent = "반값택배는 ‘편의점 지점명+주소’가 필수야.";
-    }else{
-      $("addrLabel").innerHTML = `주소 <span class="req">*</span>`;
-      $("w_addr").placeholder = "예: 서울시 ○○구 ○○로 123";
-      $("addrHint").textContent = "";
-    }
-
-    // International block
-    $("intlBlock").style.display = (currentType === "INTERNATIONAL") ? "" : "none";
-    if(currentType !== "INTERNATIONAL") $("w_country").value = "";
-
-    // Default memo
-    $("w_memo").value = (currentType === "ECONOMY_CVS")
-      ? "반값택배 안내: 최대 소요기간 6일"
-      : "";
-  }
-
-  document.querySelectorAll("button.bigbtn[data-type]").forEach(btn => {
-    btn.addEventListener("click", () => {
-      currentType = btn.dataset.type;
-      currentCustomerKind = null;
-
-      // reset
-      $("walkinFormCard").style.display = "none";
-      $("walkinResult").style.display = "none";
-
-      // clear fields
-      ["w_sName","w_sPhone","w_rName","w_rPhone","w_addr","w_weight","w_country","w_memo"].forEach(id => $(id).value = "");
-      $("w_kind").value = "";
-
-      configureWalkinForType();
-      show("view_walkin");
-      renderWalkinList();
-    });
-  });
-
-  $("walkinHome").onclick = () => show("view_home");
-  $("walkinRefresh").onclick = renderWalkinList;
-
-  $("btnMember").onclick = () => {
-    currentCustomerKind = "MEMBER";
-    $("walkinFormCard").style.display = "";
-  };
-  $("btnGuest").onclick = () => {
-    currentCustomerKind = "GUEST";
-    $("walkinFormCard").style.display = "";
-  };
-
-  $("w_cancel").onclick = () => {
-    $("walkinFormCard").style.display = "none";
-    currentCustomerKind = null;
-  };
-
-  function requireField(v){ return !!String(v || "").trim(); }
-
-  $("w_issue").onclick = async () => {
-    if(!currentType || !currentCustomerKind){
-      alert("회원/비회원부터 선택해줘!");
-      return;
-    }
-    if(!kioskStore){
-      alert("점포코드 확인이 필요해!");
-      return;
-    }
-
-    const sName = $("w_sName").value.trim();
-    const sPhone = $("w_sPhone").value.trim();
-    const rName = $("w_rName").value.trim();
-    const rPhone = $("w_rPhone").value.trim();
-    const addr = $("w_addr").value.trim();
-    const weight = $("w_weight").value.trim();
-    const kind = $("w_kind").value;
-    const country = $("w_country").value.trim();
-    const overseas = ($("w_overseas")?.value || "").trim();
-
-    if(!requireField(sName) || !requireField(sPhone) || !requireField(rName) || !requireField(rPhone)){
-      alert("보내는/받는 사람 이름/연락처는 다 필수야!");
-      return;
-    }
-    if(!requireField(addr)){
-      alert(currentType === "ECONOMY_CVS" ? "편의점 주소/지점명을 입력해야 해!" : "주소를 입력해야 해!");
-      return;
-    }
-    if(!requireField(weight) || Number(weight) <= 0){
-      alert("무게(kg)를 올바르게 입력해줘!");
-      return;
-    }
-    if(!requireField(kind)){
-      alert("물품/박스 종류를 선택해야 해!");
-      return;
-    }
-    if(currentType === "INTERNATIONAL" && !requireField(country)){
-      alert("국제택배는 국가/지역이 필수야!");
-      return;
-    }
-    if(currentType === "INTERNATIONAL" && !requireField(overseas)){
-      alert("국제택배는 해외주소가 필수야!");
-      return;
-    }
-
-    const prefix2 = PREFIX[currentType];
-    const waybill = makeWaybill(prefix2);
-
-    const rec = {
-      reserveNo: makeWalkinReserveNo(),
-      type: currentType,
-      pickup: "STORE",
-      createdAt: nowStr(),
-      status: "WAYBILL_ISSUED",
-      waybillNo: waybill,
-      waybillIssuedAt: nowStr(),
-
-      issuedStore: { code: kioskStore.code, name: kioskStore.name },
-      storeCode: kioskStore.code,
-      storeName: kioskStore.name,
-
-      storeAcceptedAt: "",
-      courier: { code:"", name:"", phone:"" },
-      pickedAt: "",
-      arrivedAt: "",
-      pickupCode: "",
-      deliveredAt: "",
-
-      kiosk: { kind: "WALKIN", customerKind: currentCustomerKind },
-
-      sender: { name: sName, phone: sPhone },
-      receiver: { name: rName, phone: rPhone },
-
-      addr: addr,
-      overseasAddr: (currentType === "INTERNATIONAL") ? overseas : "",
-
-      package: {
-        weightKg: Number(weight),
-        kind: kind,
-        country: (currentType === "INTERNATIONAL") ? country : ""
-      },
-
-      memo: $("w_memo").value.trim()
-    };
-
-    await upsert(rec);
-
-    $("walkinResult").style.display = "";
-    $("walkinResult").innerHTML = `
-      <div class="ok">운송장 발급 완료</div>
-      <div class="sub">현장접수(${currentCustomerKind === "MEMBER" ? "회원" : "비회원"})</div>
-      <div style="height:10px;"></div>
-      <div class="mono" style="white-space:pre-wrap; line-height:1.45;">
-유형: ${TYPE_LABEL[rec.type]}
-운송장(18자리): ${rec.waybillNo}
-주소: ${escapeHtml(rec.addr)}
-무게(kg): ${rec.package.weightKg}
-종류: ${escapeHtml(rec.package.kind)}
-${rec.type === "INTERNATIONAL" ? `국가: ${escapeHtml(rec.package.country)}` : ""}
-발급시각: ${rec.waybillIssuedAt}
-      </div>
-      ${rec.type === "ECONOMY_CVS" ? `<div class="hint">※ 반값택배 안내: 최대 소요기간 6일(상황에 따라 변동 가능)</div>` : ""}
-      <div style="height:10px;"></div>
-      <button class="btn primary" id="w_print" type="button">운송장 출력</button>
-    `;
-
-    $("w_print").onclick = () => openLabel(rec);
-
-    // next customer
-    $("walkinFormCard").style.display = "none";
-    currentCustomerKind = null;
-    await renderWalkinList();
-  };
-
-  // Recent waybill list
-  async function renderWalkinList(){
-    const arr = (await loadAll())
-      .filter(x => x.waybillNo && (x.status === "WAYBILL_ISSUED" || x.status === "FINAL" || x.status === "PICKED_UP"))
-      .slice(0, 20);
-
-    const box = $("walkinList");
-    box.innerHTML = "";
-    if(arr.length === 0){
-      box.innerHTML = `<div class="item"><div style="color:var(--muted)">운송장 발급 내역이 없어.</div></div>`;
-      return;
-    }
-    arr.forEach(r => {
-      box.innerHTML += `
-        <div class="item">
-          <div style="display:flex; justify-content:space-between; gap:10px; align-items:center;">
-            <span class="tag mono">${escapeHtml(r.waybillNo)}</span>
-            <span class="tag">${escapeHtml(TYPE_LABEL[r.type] || r.type)} · ${escapeHtml(r.status)}</span>
-          </div>
-          <div style="margin-top:6px; color:var(--muted); font-size:12px;">
-            발급: ${escapeHtml(r.waybillIssuedAt || "-")}
-            ${r.storeName ? ` · 점포: ${escapeHtml(r.storeName)}` : ""}
-          </div>
-        </div>
-      `;
-    });
-
-    // 클릭하면 라벨 페이지 열기
-    box.querySelectorAll(".item").forEach(el => {
-      el.style.cursor = "pointer";
-      el.onclick = async () => {
-        const wb = (el.querySelector(".mono")?.textContent || "").trim();
-        if(!wb) return;
-        // try to find full record for payload
-        try{
-          const all = await apiGetReservations();
-          const rec = (all||[]).find(x => String(x.waybillNo||"") === wb);
-          if(rec) return openLabel(rec);
-        }catch(e){}
-        openLabel(wb);
-      };
-    });
-  }
-
-  // Reservation view
-  $("reserveHome").onclick = () => show("view_home");
-  $("reserveRefresh").onclick = renderReserveList;
-
-  $("r_issue").onclick = async () => {
-    const resNo = $("reserveNo").value.trim();
-    if(!resNo){ alert("예약번호를 입력해줘!"); return; }
-    if(!kioskStore){ alert("점포코드 확인이 필요해!"); return; }
-
-    const rec = await findByReserveNo(resNo);
-    $("reserveResult").style.display = "";
-    if(!rec){
-      $("reserveResult").innerHTML = `<div class="err">없는 예약번호야. 발급 불가!</div>`;
-      return;
-    }
-    if(rec.waybillNo){
-      $("reserveResult").innerHTML = `<div class="ok">이미 발급됨</div><div class="mono" style="margin-top:8px;">운송장: ${rec.waybillNo}</div>`;
-      return;
-    }
-    const prefix2 = PREFIX[rec.type];
-    const wb = makeWaybill(prefix2);
-    rec.waybillNo = wb;
-    rec.status = "WAYBILL_ISSUED";
-    rec.waybillIssuedAt = nowStr();
-    rec.issuedStore = { code: kioskStore.code, name: kioskStore.name };
-    rec.storeCode = kioskStore.code;
-    // storeName은 점포 최종접수에서도 다시 저장 가능
-    rec.storeName = rec.storeName || kioskStore.name;
-    await upsert(rec);
-
-    $("reserveResult").innerHTML = `
-      <div class="ok">운송장 발급 완료</div>
-      <div class="mono" style="margin-top:8px; white-space:pre-wrap; line-height:1.45;">
-예약번호: ${rec.reserveNo}
-유형: ${TYPE_LABEL[rec.type]}
-운송장: ${rec.waybillNo}
-      </div>
-      <div style="height:10px;"></div>
-      <button class="btn primary" id="r_print" type="button">운송장 출력</button>
-    `;
-
-    $("r_print").onclick = () => openLabel(rec);
-    await renderReserveList();
-  };
-
-  async function renderReserveList(){
-    const arr = (await loadAll()).slice(0, 20);
-    const box = $("reserveList");
-    box.innerHTML = "";
-    if(arr.length === 0){
-      box.innerHTML = `<div class="item"><div style="color:var(--muted)">예약이 없어.</div></div>`;
-      return;
-    }
-    arr.forEach(r => {
-      box.innerHTML += `
-        <div class="item">
-          <div style="display:flex; justify-content:space-between; gap:10px; align-items:center;">
-            <span class="tag mono">${escapeHtml(r.reserveNo)}</span>
-            <span class="tag">${escapeHtml(TYPE_LABEL[r.type] || r.type)} · ${escapeHtml(r.status || "-")}</span>
-          </div>
-          <div style="margin-top:6px; color:var(--muted); font-size:12px;">
-            생성: ${escapeHtml(r.createdAt || "-")}
-            ${r.waybillNo ? ` · 운송장: <span class="mono">${escapeHtml(r.waybillNo)}</span>` : ""}
-          </div>
-        </div>
-      `;
-    });
-  }
-
-  // init
-  initStoreGate();
-  show("view_home");
+$("print").onclick=()=>{ if(!lastWb) return; location.href="./label.html?invoice_no="+encodeURIComponent(lastWb); };
+$("track").onclick=()=>{ if(!lastWb) return; location.href="./tracking.html?invoice_no="+encodeURIComponent(lastWb); };
 </script>
-</body>
-</html>
+</body></html>
