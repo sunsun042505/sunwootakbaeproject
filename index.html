@@ -186,6 +186,12 @@
             <div class="d">예약 버튼 + 배송조회 버튼</div>
           </button>
 
+          
+          <button class="bigbtn" id="goTracking">
+            <div class="t">배송조회 <span class="pill">tracking.html</span></div>
+            <div class="d">운송장 번호로 배송흐름 조회</div>
+          </button>
+
           <button class="bigbtn" id="goKiosk">
             <div class="t">키오스크 화면 <span class="pill">kiosk.html</span></div>
             <div class="d">예약접수/현장접수 → 운송장 18자리 발급</div>
@@ -456,7 +462,6 @@
   </div>
 
 <script>
-window.addEventListener("DOMContentLoaded", () => {
   const $ = (id) => document.getElementById(id);
 
   // Shared with kiosk.html
@@ -552,7 +557,7 @@ window.addEventListener("DOMContentLoaded", () => {
   function tick(){
     const d = new Date();
     const pad = (n)=> String(n).padStart(2,"0");
-    const __clk = $("clock"); if(__clk) __clk.textContent = `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+    $("clock").textContent = `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
   }
   setInterval(tick, 1000); tick();
 
@@ -566,6 +571,7 @@ window.addEventListener("DOMContentLoaded", () => {
   document.querySelectorAll("[data-home]").forEach(b => b.onclick = () => show("home"));
 
   $("goCustomer").onclick = () => { show("customer"); };
+  if($("goTracking")) $("goTracking").onclick = () => { window.location.href = "./tracking.html"; };
   $("goKiosk").onclick = () => { window.location.href = "./kiosk.html"; };
   $("goStore").onclick = () => { show("store"); hydrateStoreSession(); };
   $("goCourier").onclick = () => { show("courier"); hydrateCourierSession(); };
@@ -999,7 +1005,6 @@ ${detailText(rec)}
   // init
   show("home");
   setCustTab("reserve");
-});
 </script>
 </body>
 </html>
