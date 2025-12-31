@@ -1,21 +1,18 @@
-# Sunwoo Takbae - Stable Pack
+선우택배 - '기기 공용 데이터' 고정팩 (build 2025-12-31 15:13:16 KST)
 
-## Deploy (GitHub -> Netlify)
-1) Put all files in repo root (same level).
-2) Netlify settings:
-   - Publish directory: .
-   - Functions directory: netlify/functions (from netlify.toml)
-3) Deploy, then test:
-   - /api/ping  -> {"ok":true,...}
-   - /api/kv/get?key=DELIVERY_STORES_V1
-   - /api/reservations
+✅ 해결한 것
+- 시간 안 뜸/클릭 먹통: 모든 스크립트를 DOMContentLoaded로 감싸고 clock 업데이트를 안전하게 처리
+- 기기마다 데이터 다름: localStorage가 아니라 Netlify Functions + Netlify Blobs(서버 저장) 사용
 
-## Notes
-- All data is stored in Netlify Blobs store: "sunwoo-takbae-v1"
-- Works across devices as long as you use the same deployed domain.
+구성
+- index.html / kiosk.html / tracking.html / label.html
+- netlify/functions/api.mjs
+- netlify.toml (중요: /api/* -> functions redirect)
+- package.json (@netlify/blobs)
 
-
-## IMPORTANT (데이터가 기기마다 달라지는 문제)
-- 이제 localStorage 백업을 끄고(기본), Netlify Blobs(store: sunwoo-takbae-v1)에만 저장하도록 했어요.
-- GitHub에 올릴 때 반드시 netlify/functions 폴더도 같이 올라가야 /api/* 가 동작합니다.
-- 배포 후 테스트: /api/ping , /api/kv/get?key=DELIVERY_RESERVATIONS_V1 , /api/reservations
+배포(중요)
+1) 이 폴더 내용 전부를 GitHub repo 루트에 업로드/커밋
+2) Netlify가 그 repo를 자동배포하도록 연결되어 있어야 함
+3) 배포 후 확인
+   - https://<도메인>/api/ping  → JSON { "ok": true, ... }
+   - index.html에서 기능 클릭 시 경고창 없이 정상 동작

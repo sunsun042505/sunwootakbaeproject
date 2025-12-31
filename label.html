@@ -57,13 +57,12 @@
     <div class="top noPrint">
       <div class="card" style="flex:1; min-width:280px;">
         <div style="font-weight:900;">운송장 라벨 출력</div>
-        <div class="hint">• 이 페이지는 <span class="mono">label.html?waybill=운송장번호</span> 로 열 수 있어.<br/>• iOS에서 Fun Print가 “사진”에서만 뜨면, “사진용 JPG”로 만든 뒤 이미지에서 “사진에 추가/저장” 후 공유해줘.</div>
+        <div class="hint">• 이 페이지는 <span class="mono">label.html?waybill=운송장번호</span> 로 열 수 있어.<br/>• “공유(앱)” 버튼으로 프린터 앱을 선택해서 출력하는 방식이 제일 안정적이야.</div>
       </div>
       <div style="display:flex; gap:10px; align-items:center;">
         <button class="btn" id="btnReload">새로고침</button>
         <button class="btn primary" id="btnShare">공유(앱)</button>
         <button class="btn" id="btnDownload">PNG 저장</button>
-        <button class="btn" id="btnPhoto">사진용 JPG</button>
         <button class="btn" id="btnPrint">인쇄</button>
       </div>
     </div>
@@ -129,53 +128,8 @@
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 
   <script>
+window.addEventListener("DOMContentLoaded", () => {
     const $ = (id)=>document.getElementById(id);
-
-    function isIOS(){
-      const ua = navigator.userAgent || "";
-      return /iPad|iPhone|iPod/.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
-    }
-
-
-    function decodeB64Url(s){
-      try{
-        const pad = "=".repeat((4 - (s.length % 4)) % 4);
-        const b64 = (s.replace(/-/g,"+").replace(/_/g,"/")) + pad;
-        const str = atob(b64);
-        // decode utf-8
-        const bytes = Uint8Array.from(str, c => c.charCodeAt(0));
-        return new TextDecoder().decode(bytes);
-      }catch(e){ return ""; }
-    }
-
-    function parsePayload(waybill){
-      const wb = String(waybill || "").trim();
-      // 1) query payload
-      const p = qp("payload");
-      if(p){
-        const jsonStr = decodeB64Url(p);
-        if(jsonStr){
-          try{
-            const obj = JSON.parse(jsonStr);
-            // cache for same-device fallback
-            if(wb){
-              try{ localStorage.setItem(`SW_LABEL_PAYLOAD_${wb}`, JSON.stringify(obj)); }catch(e){}
-            }
-            return obj;
-          }catch(e){}
-        }
-      }
-
-      // 2) localStorage fallback (same device)
-      if(wb){
-        try{
-          const raw = localStorage.getItem(`SW_LABEL_PAYLOAD_${wb}`);
-          if(raw) return JSON.parse(raw);
-        }catch(e){}
-      }
-
-      return null;
-    }
 
     function qp(name){
       const u = new URL(location.href);
@@ -183,24 +137,10 @@
     }
 
     async function apiGetReservations(){
-      // 1) preferred: /api/reservations
-      try{
-        const r = await fetch("/api/reservations", { cache:"no-store" });
-        if(r.ok) return await r.json();
-      }catch(e){}
-
-      // 2) fallback: KV direct
-      try{
-        const key = "DELIVERY_RESERVATIONS_V1";
-        const r2 = await fetch(`/api/kv/get?key=${encodeURIComponent(key)}`, { cache:"no-store" });
-        if(r2.ok){
-          const j = await r2.json();
-          if(Array.isArray(j?.value)) return j.value;
-          if(Array.isArray(j)) return j;
-        }
-      }catch(e){}
-
-      return [];
+      const r = await fetch("/api/reservations", { cache:"no-store" });
+      if(!r.ok) throw new Error("API error");
+      const j = await r.json();
+      return Array.isArray(j) ? j : (j?.data || j?.reservations || []);
     }
 
     function typeLabel(t){
@@ -208,20 +148,7 @@
       return m[t] || t || "-";
     }
 
-    const KIND_LABEL = {
-      DOCUMENT: "서류",
-      SMALL_BOX: "소형 박스",
-      MEDIUM_BOX: "중형 박스",
-      LARGE_BOX: "대형 박스",
-      FRAGILE: "파손주의",
-      ETC: "기타"
-    };
-
-    function kindLabel(k){
-      const key = (k || "").trim();
-      return key ? (KIND_LABEL[key] || key) : "-";
-    }
-function statusLabel(s){
+    function statusLabel(s){
       const m = {
         RESERVED:"예약", WAYBILL_ISSUED:"운송장발급", FINAL:"점포접수", PICKED_UP:"기사수거",
         ARRIVED_COLLECTION_CENTER:"집화센터도착", ARRIVED_HUB:"허브센터도착", OUTBOUND_PREP:"출고준비",
@@ -235,8 +162,7 @@ function statusLabel(s){
     }
 
     function pickAddr(rec){
-      // Our records store address in rec.addr (customer 입력) + sometimes rec.package.addr
-      return (rec.addr || rec.package?.addr || rec.address || rec.toAddr || rec.customerAddr || "-");
+      return (rec.addr || rec.address || rec.toAddr || rec.customerAddr || "-");
     }
 
     async function load(){
@@ -246,80 +172,40 @@ function statusLabel(s){
         return;
       }
 
-      // Always show waybill + barcode
+      const all = await apiGetReservations();
+      const rec = (all || []).find(x => String(x.waybillNo||"") === waybill);
+
       $("wbText").textContent = waybill;
       $("wbMono").textContent = waybill;
       try{ JsBarcode("#barcode", waybill, { format:"CODE128", displayValue:false, margin:0, height:60 }); }catch(e){}
 
-      // 0) payload-first (works even without server)
-      const payload = parsePayload(waybill);
-      if(payload && String(payload.waybillNo||payload.waybill||"") === waybill){
-        // fill from payload immediately
-        $("typeTag").textContent = typeLabel(payload.type);
-        $("storeName").textContent = payload.storeName || "미정";
-        $("destStoreName").textContent = payload.destStoreName || (payload.type==="ECONOMY_CVS" ? "미정" : "-");
-        $("addr").textContent = (payload.addr || payload.address || "-");
-        $("weight").textContent = (payload.weightKg ?? payload.weight ?? "-");
-        $("kind").textContent = kindLabel(payload.kind || payload.kindKey || "");
-        $("statusText").textContent = "라벨 준비됨(앱으로 공유해서 출력해줘!)";
-      }
-
-      // 1) try to refresh from server (if available)
-      let rec = null;
-      try{
-        const all = await apiGetReservations();
-        rec = (all || []).find(x => String(x.waybillNo||"") === waybill) || null;
-      }catch(e){
-        rec = null;
-      }
-
       if(!rec){
-        if(payload) return;
-        $("statusText").textContent = "서버에서 운송장 정보를 못 가져왔어(서버/함수 미구동). 키오스크에서 전달된 정보로 라벨을 표시 중이야.";
+        $("statusText").textContent = "등록된 운송장이 아님";
         return;
       }
 
       $("typeTag").textContent = typeLabel(rec.type);
-      $("storeName").textContent = rec.storeName || rec.originStoreName || "미정";
-      $("destStoreName").textContent = rec.destStoreName || rec.destinationStoreName || (rec.type==="ECONOMY_CVS" ? "미정" : "-");
+      $("storeName").textContent = rec.storeName || "-";
+      $("destStoreName").textContent = rec.destStoreName || "-";
       $("addr").textContent = pickAddr(rec);
-
-      const w = (rec.package?.weightKg ?? rec.weightKg ?? rec.weight ?? "-");
-      $("weight").textContent = (typeof w === "number") ? String(w) : String(w);
-
-      const kindKey = (rec.package?.kind ?? rec.kind ?? "");
-      $("kind").textContent = kindLabel(kindKey);
-
-      $("statusText").textContent = `상태: ${statusLabel(rec.status)}`;
+      $("weight").textContent = (rec.weightKg ?? rec.weight ?? "-");
+      $("kind").textContent = rec.kind || "-";
+      $("statusText").textContent = `상태: ${statusLabel(rec.status)} (${rec.status || "-"})`;
     }
 
-    $("btnReload").onclick = () => 
-    $("btnPhoto").onclick = async () => {
-      try{
-        const blob = await exportImageBlob("image/jpeg");
-        const url = URL.createObjectURL(blob);
-        // iOS: 새 탭에서 이미지를 열고 길게 눌러 “사진에 추가/저장” 후 사진 앱에서 공유 -> Fun Print
-        window.open(url, "_blank");
-        setTimeout(()=>URL.revokeObjectURL(url), 15000);
-      }catch(e){
-        alert("JPG 생성 실패. 대신 PNG 저장 또는 인쇄(PDF)로 해줘!");
-      }
-    };
-
-    load();
+    $("btnReload").onclick = () => load();
     $("btnPrint").onclick = () => window.print();
 
-    async function exportImageBlob(mime){
+    async function exportPngBlob(){
       const node = $("label");
       if(!window.html2canvas) throw new Error("html2canvas 없음");
       const canvas = await html2canvas(node, { backgroundColor:"#ffffff", scale:2 });
-      const type = mime || "image/png";
-      return await new Promise((resolve)=>canvas.toBlob(resolve, type, 0.92));
+      return await new Promise((resolve)=>canvas.toBlob(resolve, "image/png"));
     }
 
     $("btnDownload").onclick = async () => {
       try{
-        const blob = await exportImageBlob(isIOS() ? "image/jpeg" : "image/png");
+        const blob = await exportPngBlob();
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = url;
@@ -337,7 +223,7 @@ function statusLabel(s){
           alert("이 기기/브라우저는 공유 기능이 없어. PNG 저장 후 앱에서 열어줘!");
           return;
         }
-        const blob = await exportImageBlob("image/png");
+        const blob = await exportPngBlob();
         const file = new File([blob], `label_${$("wbMono").textContent || "waybill"}.png`, { type:"image/png" });
         await navigator.share({
           title: "운송장 라벨",
@@ -350,6 +236,8 @@ function statusLabel(s){
     };
 
     load();
-  </script>
+  
+});
+</script>
 </body>
 </html>

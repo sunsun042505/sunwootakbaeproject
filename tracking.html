@@ -134,6 +134,7 @@
   </div>
 
   <script>
+window.addEventListener("DOMContentLoaded", () => {
     const $ = (id)=>document.getElementById(id);
 
     function qp(name){
@@ -202,7 +203,8 @@
     async function apiGetReservations(){
       const r = await fetch("/api/reservations", { cache:"no-store" });
       if(!r.ok) throw new Error("API error");
-      return await r.json();
+      const j = await r.json();
+      return Array.isArray(j) ? j : (j?.data || j?.reservations || []);
     }
 
     function ensureEvents(rec){
@@ -259,24 +261,9 @@
       });
     }
 
-    function normalizeWb(s){
-      return String(s||"").replace(/\D/g,"").trim();
-    }
-
-    function extractList(json){
-      if(Array.isArray(json)) return json;
-      if(json && Array.isArray(json.items)) return json.items;
-      if(json && Array.isArray(json.reservations)) return json.reservations;
-      if(json && Array.isArray(json.data)) return json.data;
-      return [];
-    }
-
     async function doSearch(wb, pushUrl){
-      const invoiceRaw = String(wb || "").trim();
-      const invoice = normalizeWb(invoiceRaw);
-
+      const invoice = (wb || "").trim();
       if(!invoice){ showErr("운송장 번호를 입력해줘!"); return; }
-      if(invoice.length !== 18){ showErr("운송장 번호는 숫자 18자리여야 해!"); return; }
 
       if(pushUrl){
         const u = new URL(location.href);
@@ -286,25 +273,15 @@
 
       $("invoice").value = invoice;
 
-      let json;
+      let all;
       try{
-        const r = await fetch("/api/reservations", { cache:"no-store" });
-        if(!r.ok) throw new Error("API error");
-        json = await r.json();
+        all = await apiGetReservations();
       }catch(e){
         showErr("서버에서 조회를 못 했어. 잠깐 후 다시 해줘!");
         return;
       }
-
-      const all = extractList(json);
-      const rec = all.find(x => normalizeWb(x.waybillNo || x.waybill || x.invoice_no || x.invoiceNo || "") === invoice);
-
-      if(!rec){
-        // 도움 메시지: 서버에 데이터는 있지만 해당 번호가 없을 수 있음
-        const hint = all.length ? `서버에는 ${all.length}건이 있지만, 이 번호는 못 찾았어.` : "서버에 저장된 접수 내역이 아직 없어.";
-        showErr(`등록된 운송장이 아님. (${hint})`);
-        return;
-      }
+      const rec = (all || []).find(x => String(x.waybillNo||"") === invoice);
+      if(!rec){ showErr("등록된 운송장이 아님"); return; }
 
       showResult();
       fill(rec);
@@ -318,6 +295,8 @@
     if(inv){
       doSearch(inv, false);
     }
-  </script>
+  
+});
+</script>
 </body>
 </html>

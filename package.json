@@ -1,8 +1,8 @@
 {
-  "name": "sunwoo-takbae",
+  "name": "sunwootakbae",
   "private": true,
   "type": "module",
   "dependencies": {
-    "@netlify/blobs": "^8.1.0"
+    "@netlify/blobs": "^10.0.0"
   }
 }
