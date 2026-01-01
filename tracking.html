@@ -134,37 +134,10 @@
   </div>
 
   <script>
-const APP_VERSION = "1.0";
 
-      // ===== SAFE DOM GETTER (missing element won't crash the whole app) =====
-  const $ = (id) => {
-    const el = document.getElementById(id);
-    if(el) return el;
-    return new Proxy({ __missing:true }, {
-      get(t, p){
-        if(p === "__missing") return true;
-        if(p === "style") return {};
-        if(p === "classList") return { add(){}, remove(){}, toggle(){}, contains(){ return false; } };
-        if(p === "dataset") return {};
-        if(p === "value") return "";
-        if(p === "checked") return false;
-        if(p === "innerHTML") return "";
-        if(p === "textContent") return "";
-        if(p === "appendChild") return ()=>{};
-        if(p === "removeChild") return ()=>{};
-        if(p === "insertAdjacentHTML") return ()=>{};
-        if(p === "querySelector") return ()=>null;
-        if(p === "querySelectorAll") return ()=>[];
-        if(p === "addEventListener") return ()=>{};
-        if(p === "removeEventListener") return ()=>{};
-        if(p === "focus") return ()=>{};
-        if(p === "click") return ()=>{};
-        return t[p];
-      },
-      set(t, p, v){ t[p] = v; return true; }
-    });
-  };
-function qp(name){
+    const $ = (id)=>document.getElementById(id);
+
+    function qp(name){
       const u = new URL(location.href);
       return u.searchParams.get(name) || "";
     }
@@ -227,8 +200,40 @@ function qp(name){
       return m[s] || s || "-";
     }
 
-    async function apiGetReservations(){
+
+    function normNo(v){
+      return String(v||"").trim().replace(/[^\d]/g,"");
+    }
+
+    async function apiGetOneByWaybill(invRaw){
+      const inv = normNo(invRaw);
+      if(!inv) return null;
+      const r = await fetch("/api/reservations/byWaybill/" + encodeURIComponent(inv), { cache:"no-store" });
+      if(r.ok) return await r.json();
+      return null;
+    }
+
+    async function apiGetReservationsList(){
       const r = await fetch("/api/reservations", { cache:"no-store" });
+      if(!r.ok) throw new Error("API error");
+      const arr = await r.json();
+      return Array.isArray(arr) ? arr : [];
+    }
+
+    function matchReservation(list, invRaw){
+      const inv = normNo(invRaw);
+      if(!inv) return null;
+      return list.find(rec=>{
+        const candidates = [
+          rec?.waybillNo, rec?.invoiceNo, rec?.invoice_no, rec?.waybill, rec?.wb, rec?.reserveNo
+        ].filter(Boolean).map(normNo);
+        return candidates.includes(inv);
+      }) || null;
+    }
+
+
+    async function apiGetReservations(){ return await apiGetReservationsList(); }
+);
       if(!r.ok) throw new Error("API error");
       return await r.json();
     }
@@ -287,24 +292,9 @@ function qp(name){
       });
     }
 
-    function normalizeWb(s){
-      return String(s||"").replace(/\D/g,"").trim();
-    }
-
-    function extractList(json){
-      if(Array.isArray(json)) return json;
-      if(json && Array.isArray(json.items)) return json.items;
-      if(json && Array.isArray(json.reservations)) return json.reservations;
-      if(json && Array.isArray(json.data)) return json.data;
-      return [];
-    }
-
     async function doSearch(wb, pushUrl){
-      const invoiceRaw = String(wb || "").trim();
-      const invoice = normalizeWb(invoiceRaw);
-
+      const invoice = (wb || "").trim();
       if(!invoice){ showErr("운송장 번호를 입력해줘!"); return; }
-      if(invoice.length !== 18){ showErr("운송장 번호는 숫자 18자리여야 해!"); return; }
 
       if(pushUrl){
         const u = new URL(location.href);
@@ -314,25 +304,15 @@ function qp(name){
 
       $("invoice").value = invoice;
 
-      let json;
+      let all;
       try{
-        const r = await fetch("/api/reservations", { cache:"no-store" });
-        if(!r.ok) throw new Error("API error");
-        json = await r.json();
+        all = await apiGetReservations();
       }catch(e){
         showErr("서버에서 조회를 못 했어. 잠깐 후 다시 해줘!");
         return;
       }
-
-      const all = extractList(json);
-      const rec = all.find(x => normalizeWb(x.waybillNo || x.waybill || x.invoice_no || x.invoiceNo || "") === invoice);
-
-      if(!rec){
-        // 도움 메시지: 서버에 데이터는 있지만 해당 번호가 없을 수 있음
-        const hint = all.length ? `서버에는 ${all.length}건이 있지만, 이 번호는 못 찾았어.` : "서버에 저장된 접수 내역이 아직 없어.";
-        showErr(`등록된 운송장이 아님. (${hint})`);
-        return;
-      }
+      const rec = (all || []).find(x => String(x.waybillNo||"") === invoice);
+      if(!rec){ showErr("등록된 운송장이 아님"); return; }
 
       showResult();
       fill(rec);
@@ -342,13 +322,11 @@ function qp(name){
     $("goHome").onclick = () => { window.location.href = "./index.html"; };
 
     // auto-run if invoice_no exists
-    const inv = qp("invoice_no");
+    const inv = normNo(qp("invoice_no") || qp("waybill_no") || qp("waybillNo") || qp("wb") || "");
     if(inv){
       doSearch(inv, false);
     }
   
-try{ const p=document.getElementById("appVersion"); if(p) p.textContent="v"+APP_VERSION; }catch(e){}
-
 </script>
 </body>
 </html>
