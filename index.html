@@ -190,11 +190,6 @@
             <div class="t">키오스크 화면 <span class="pill">kiosk.html</span></div>
             <div class="d">예약접수/현장접수 → 운송장 18자리 발급</div>
           </button>
-          <button class="bigbtn" id="goTracking">
-            <div class="t">배송조회 <span class="pill">tracking.html</span></div>
-            <div class="d">운송장 번호로 배송흐름 조회</div>
-          </button>
-
 
           <button class="bigbtn" id="goStore">
             <div class="t">점포 화면 <span class="pill">로그인</span></div>
@@ -461,39 +456,10 @@
   </div>
 
 <script>
+  const $ = (id) => document.getElementById(id);
 
-    // ===== SAFE DOM GETTER (missing element won't crash the whole app) =====
-  const $ = (id) => {
-    const el = document.getElementById(id);
-    if(el) return el;
-    return new Proxy({ __missing:true }, {
-      get(t, p){
-        if(p === "__missing") return true;
-        if(p === "style") return {};
-        if(p === "classList") return { add(){}, remove(){}, toggle(){}, contains(){ return false; } };
-        if(p === "dataset") return {};
-        if(p === "value") return "";
-        if(p === "checked") return false;
-        if(p === "innerHTML") return "";
-        if(p === "textContent") return "";
-        if(p === "appendChild") return ()=>{};
-        if(p === "removeChild") return ()=>{};
-        if(p === "insertAdjacentHTML") return ()=>{};
-        if(p === "querySelector") return ()=>null;
-        if(p === "querySelectorAll") return ()=>[];
-        if(p === "addEventListener") return ()=>{};
-        if(p === "removeEventListener") return ()=>{};
-        if(p === "focus") return ()=>{};
-        if(p === "click") return ()=>{};
-        return t[p];
-      },
-      set(t, p, v){ t[p] = v; return true; }
-    });
-  };
-// Shared with kiosk.html
-  const APP_VERSION = "1.0";
-
-const LS_RES = "DELIVERY_RESERVATIONS_V1";
+  // Shared with kiosk.html
+  const LS_RES = "DELIVERY_RESERVATIONS_V1";
   const LS_STORES = "DELIVERY_STORES_V1";
   const LS_COURIERS = "DELIVERY_COURIERS_V1";
   const LS_SESSION = "DELIVERY_SESSION_V1"; // {store:{name,code}, courier:{code}}
@@ -529,77 +495,20 @@ const LS_RES = "DELIVERY_RESERVATIONS_V1";
     return `RSV-${y}${m}${day}-${rand}`;
   }
 
-  
-  // ===== Cloud storage (Netlify Blobs via /api) =====
-  // LS_RES / LS_STORES / LS_COURIERS => 서버(기기 공용)
-  // LS_SESSION => 이 기기 세션(로그인 유지 X)
-  const CLOUD_KEYS = [LS_RES, LS_STORES, LS_COURIERS];
-  const __CACHE__ = Object.create(null);
-
-  async function apiGet(path){
-    const r = await fetch(path, { cache:"no-store" });
-    const t = await r.text();
-    let o; try{ o = JSON.parse(t); }catch{ o = { raw:t }; }
-    if(!r.ok) throw new Error(o?.error || ("HTTP_"+r.status));
-    return o;
-  }
-  async function apiPost(path, body){
-    const r = await fetch(path, {
-      method:"POST",
-      headers:{ "Content-Type":"application/json" },
-      body: JSON.stringify(body),
-      cache:"no-store"
-    });
-    const t = await r.text();
-    let o; try{ o = JSON.parse(t); }catch{ o = { raw:t }; }
-    if(!r.ok) throw new Error(o?.error || ("HTTP_"+r.status));
-    return o;
-  }
-  async function kvGet(key, defVal){
-    try{
-      const o = await apiGet("/api/kv/get?key=" + encodeURIComponent(key));
-      return (o && o.value !== undefined && o.value !== null) ? o.value : defVal;
-    }catch(e){
-      return defVal;
-    }
-  }
-  async function kvSet(key, value){
-    await apiPost("/api/kv/set", { key, value });
-  }
-
-  async function preloadCloud(){
-    for(const k of CLOUD_KEYS){
-      const v = await kvGet(k, []);
-      __CACHE__[k] = Array.isArray(v) ? v : [];
-    }
-  }
-
   function load(key){
-    return __CACHE__[key] ?? [];
+    try{ return JSON.parse(localStorage.getItem(key) || "[]"); } catch { return []; }
   }
   function save(key, val){
-    __CACHE__[key] = val;
-    kvSet(key, val).catch(console.warn);
+    localStorage.setItem(key, JSON.stringify(val));
   }
-
   function loadSession(){
-    try{ return JSON.parse(sessionStorage.getItem(LS_SESSION) || "{}"); } catch { return {}; }
+    try{ return JSON.parse(localStorage.getItem(LS_SESSION) || "{}"); } catch { return {}; }
   }
   function saveSession(obj){
-    sessionStorage.setItem(LS_SESSION, JSON.stringify(obj || {}));
+    localStorage.setItem(LS_SESSION, JSON.stringify(obj));
   }
 
-  async function syncAppVersion(){
-    const key = "sunwoo_app_version";
-    const stored = await kvGet(key, null);
-    // 코드에 박힌 버전(APP_VERSION)이 더 최신이면 서버 버전을 업데이트
-    if(stored !== APP_VERSION){
-      await kvSet(key, APP_VERSION);
-    }
-    const pill = document.getElementById("appVersion");
-    if(pill) pill.textContent = "v" + APP_VERSION;
-  }
-function upsertRes(rec){
+  function upsertRes(rec){
     const arr = load(LS_RES);
     const idx = arr.findIndex(x => x.reserveNo === rec.reserveNo);
     if(idx >= 0) arr[idx] = rec; else arr.unshift(rec);
@@ -1089,20 +998,6 @@ ${detailText(rec)}
   // init
   show("home");
   setCustTab("reserve");
-
-  // ----- bootstrap (cloud preload + version) -----
-  (async()=>{
-    try{
-      await preloadCloud();
-      await syncAppVersion();
-    }catch(e){
-      console.warn("bootstrap failed", e);
-      // still show version pill
-      const pill = document.getElementById("appVersion");
-      if(pill) pill.textContent = "v" + APP_VERSION;
-    }
-  })();
-
 </script>
 </body>
 </html>

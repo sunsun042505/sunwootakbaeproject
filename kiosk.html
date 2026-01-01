@@ -155,35 +155,10 @@
     @media (max-width: 520px){ .twoBtns{grid-template-columns: 1fr;} }
 
     .req{color: var(--warn); font-weight:900;}
-  
-  /* 점포 로그인 게이트 */
-  #storeGate{position:fixed; inset:0; background:rgba(0,0,0,.68); display:flex; align-items:center; justify-content:center; z-index:9999;}
-  #storeGate .panel{width:min(520px,92vw); border-radius:16px; padding:16px; background:rgba(20,24,32,.96); border:1px solid rgba(255,255,255,.14);}
-  #storeGate .row{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:12px;}
-  #storeGate input{width:100%; padding:12px; border-radius:12px; border:1px solid rgba(255,255,255,.14); background:rgba(0,0,0,.25); color:#fff;}
-  #storeGate .btnRow{display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-top:12px;}
-
-</style>
+  </style>
 </head>
 <body>
-
-  <div id="storeGate">
-    <div class="panel">
-      <b style="font-size:16px;">점포 로그인</b>
-      <div style="opacity:.85; font-size:12px; margin-top:6px; line-height:1.4;">키오스크는 점포코드 로그인 후 접수/발급할 수 있어.</div>
-      <div class="row">
-        <div><div style="font-size:12px; opacity:.85; margin-bottom:6px;">점포명</div><input id="gate_storeName" placeholder="예: 선우편의점 강남점"></div>
-        <div><div style="font-size:12px; opacity:.85; margin-bottom:6px;">점포코드</div><input id="gate_storeCode" placeholder="예: STORE-1234"></div>
-      </div>
-      <div class="btnRow">
-        <button class="btn primary" id="gate_login">로그인</button>
-        <span style="font-size:12px; opacity:.85;" id="gate_msg"></span>
-      </div>
-      <div style="opacity:.8; font-size:12px; margin-top:10px;">※ 점포 등록은 메인(index.html) → 점포화면에서 가능</div>
-    </div>
-  </div>
-
-<div class="panel">
+  <div class="panel">
     <header>
       <div class="brand">
         <div class="logo" aria-hidden="true"></div>
@@ -357,37 +332,9 @@
   </div>
 
 <script>
-const APP_VERSION="1.0";
+  const $ = (id) => document.getElementById(id);
 
-    // ===== SAFE DOM GETTER (missing element won't crash the whole app) =====
-  const $ = (id) => {
-    const el = document.getElementById(id);
-    if(el) return el;
-    return new Proxy({ __missing:true }, {
-      get(t, p){
-        if(p === "__missing") return true;
-        if(p === "style") return {};
-        if(p === "classList") return { add(){}, remove(){}, toggle(){}, contains(){ return false; } };
-        if(p === "dataset") return {};
-        if(p === "value") return "";
-        if(p === "checked") return false;
-        if(p === "innerHTML") return "";
-        if(p === "textContent") return "";
-        if(p === "appendChild") return ()=>{};
-        if(p === "removeChild") return ()=>{};
-        if(p === "insertAdjacentHTML") return ()=>{};
-        if(p === "querySelector") return ()=>null;
-        if(p === "querySelectorAll") return ()=>[];
-        if(p === "addEventListener") return ()=>{};
-        if(p === "removeEventListener") return ()=>{};
-        if(p === "focus") return ()=>{};
-        if(p === "click") return ()=>{};
-        return t[p];
-      },
-      set(t, p, v){ t[p] = v; return true; }
-    });
-  };
-// Must match index.html
+  // Must match index.html
   const LS_RES = "DELIVERY_RESERVATIONS_V1";
 
   const TYPE_LABEL = {
@@ -417,52 +364,14 @@ const APP_VERSION="1.0";
   }
   setInterval(tick, 1000); tick();
 
-  (async()=>{ __RES_CACHE__ = await kvGet(LS_RES, []); if(!Array.isArray(__RES_CACHE__)) __RES_CACHE__ = []; })().catch(console.warn);
-
-
-  
-  // ===== Cloud storage (LS_RES 서버 저장/기기 공용) =====
-  let __RES_CACHE__ = [];
-
-  async function apiGet(path){
-    const r = await fetch(path, { cache:"no-store" });
-    const t = await r.text();
-    let o; try{ o = JSON.parse(t); }catch{ o = { raw:t }; }
-    if(!r.ok) throw new Error(o?.error || ("HTTP_"+r.status));
-    return o;
-  }
-  async function apiPost(path, body){
-    const r = await fetch(path, {
-      method:"POST",
-      headers:{ "Content-Type":"application/json" },
-      body: JSON.stringify(body),
-      cache:"no-store"
-    });
-    const t = await r.text();
-    let o; try{ o = JSON.parse(t); }catch{ o = { raw:t }; }
-    if(!r.ok) throw new Error(o?.error || ("HTTP_"+r.status));
-    return o;
-  }
-  async function kvGet(key, defVal){
-    try{
-      const o = await apiGet("/api/kv/get?key=" + encodeURIComponent(key));
-      return (o && o.value !== undefined && o.value !== null) ? o.value : defVal;
-    }catch(e){
-      return defVal;
-    }
-  }
-  async function kvSet(key, value){
-    await apiPost("/api/kv/set", { key, value });
-  }
-
   function loadAll(){
-    return Array.isArray(__RES_CACHE__) ? __RES_CACHE__ : [];
+    try{ return JSON.parse(localStorage.getItem(LS_RES) || "[]"); }
+    catch{ return []; }
   }
   function saveAll(arr){
-    __RES_CACHE__ = arr;
-    kvSet(LS_RES, arr).catch(console.warn);
+    localStorage.setItem(LS_RES, JSON.stringify(arr));
   }
-function upsert(rec){
+  function upsert(rec){
     const arr = loadAll();
     const idx = arr.findIndex(x => x.reserveNo === rec.reserveNo);
     if(idx >= 0) arr[idx] = rec;
@@ -715,12 +624,7 @@ ${rec.type === "INTERNATIONAL" ? `국가: ${escapeHtml(rec.package.country)}` : 
     const prefix2 = PREFIX[rec.type];
     const wb = makeWaybill(prefix2);
     rec.waybillNo = wb;
-    
-    rec.storeName = (__STORE__ ? __STORE__.name : "");
-    rec.storeAcceptedAt = nowStr();
-    rec.events = rec.events || [];
-    rec.events.push({ at: rec.storeAcceptedAt, place: rec.storeName || "-", message: "점포접수 하였습니다" });
-rec.status = "WAYBILL_ISSUED";
+    rec.status = "WAYBILL_ISSUED";
     rec.waybillIssuedAt = nowStr();
     upsert(rec);
 
@@ -761,61 +665,6 @@ rec.status = "WAYBILL_ISSUED";
 
   // init
   show("view_home");
-
-  // ===== 점포 로그인(서버) =====
-  let __STORE__ = null;
-
-  async function storeLogin(name, code){
-    const r = await apiPost("/api/stores/login", { name, code });
-    return r.store;
-  }
-  function requireStore(){
-    if(!__STORE__){
-      const g = document.getElementById("storeGate");
-      if(g) g.style.display = "flex";
-      return false;
-    }
-    return true;
-  }
-
-  const gateLogin = document.getElementById("gate_login");
-  const gateMsg = document.getElementById("gate_msg");
-  if(gateLogin){
-    gateLogin.onclick = async()=>{
-      if(gateMsg) gateMsg.textContent = "";
-      const name = document.getElementById("gate_storeName")?.value?.trim() || "";
-      const code = document.getElementById("gate_storeCode")?.value?.trim() || "";
-      if(!name || !code){ if(gateMsg) gateMsg.innerHTML = '<span class="err">점포명/코드 입력</span>'; return; }
-      try{
-        __STORE__ = await storeLogin(name, code);
-        const g = document.getElementById("storeGate");
-        if(g) g.style.display = "none";
-        if(gateMsg) gateMsg.innerHTML = '<span class="ok">로그인됨</span>';
-      }catch(e){
-        if(gateMsg) gateMsg.innerHTML = '<span class="err">없는 점포</span>';
-      }
-    };
-  }
-
-  try{ const p=document.getElementById("appVersion"); if(p) p.textContent="v"+APP_VERSION; }catch{}
-
-  function attachPrintTrack(containerId, waybillNo){
-    const box = document.getElementById(containerId);
-    if(!box) return;
-    const wrap = document.createElement("div");
-    wrap.style.cssText = "margin-top:12px; display:flex; gap:10px; flex-wrap:wrap;";
-    const b1 = document.createElement("button"); b1.className="btn primary"; b1.textContent="라벨 출력";
-    const b2 = document.createElement("button"); b2.className="btn"; b2.textContent="배송조회";
-    b1.onclick = ()=> location.href = "./label.html?invoice_no=" + encodeURIComponent(waybillNo);
-    b2.onclick = ()=> location.href = "./tracking.html?invoice_no=" + encodeURIComponent(waybillNo);
-    wrap.appendChild(b1); wrap.appendChild(b2);
-    box.appendChild(wrap);
-  }
-
-  // 결과 표시 후 버튼 붙이기(존재할 때만)
-  const __oldSetWalk = (window.__setWalkResult || null);
-  // (원본 UI에 맞춰 walkinResult/reserveResult가 있으면 붙음)
-
 </script>
 </body>
 </html>
