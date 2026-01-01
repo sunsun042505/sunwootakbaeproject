@@ -155,39 +155,10 @@
     @media (max-width: 520px){ .twoBtns{grid-template-columns: 1fr;} }
 
     .req{color: var(--warn); font-weight:900;}
-  /* ===== 점포 로그인 게이트 ===== */
-  #storeGate{position:fixed; inset:0; background:rgba(0,0,0,.68); display:flex; align-items:center; justify-content:center; z-index:9999;}
-  #storeGate .panel{width:min(520px,92vw); border:1px solid var(--line); border-radius:var(--radius); background:linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.04)); padding:16px; box-shadow:var(--shadow);}
-  #storeGate .panel b{font-size:16px}
-  #storeGate .panel .sub{color:var(--muted); font-size:12px; margin-top:6px; line-height:1.4;}
-  #storeGate .panel .row{margin-top:12px}
-  #storeGate .panel .btnRow{display:flex; gap:10px; flex-wrap:wrap; margin-top:12px; align-items:center;}
-</style>
+  </style>
 </head>
 <body>
-<!-- ===== 점포 로그인 게이트(서버에 등록된 점포만) ===== -->
-  <div id="storeGate">
-    <div class="panel">
-      <b>점포 로그인</b>
-      <div class="sub">키오스크는 점포코드 로그인 후 접수/발급할 수 있어.</div>
-      <div class="row" style="grid-template-columns:1fr 1fr; gap:10px; margin-top:12px;">
-        <div>
-          <label>점포명</label>
-          <input id="gate_storeName" placeholder="예: 선우편의점 강남점" />
-        </div>
-        <div>
-          <label>점포코드</label>
-          <input id="gate_storeCode" placeholder="예: STORE-1234" />
-        </div>
-      </div>
-      <div class="btnRow">
-        <button class="btn primary" id="gate_login">로그인</button>
-        <span class="sub" id="gate_msg"></span>
-      </div>
-      <div class="sub" style="margin-top:10px;">※ 점포 등록은 메인(index.html) → 점포화면에서 할 수 있음</div>
-    </div>
-  </div>
-<div class="panel">
+  <div class="panel">
     <header>
       <div class="brand">
         <div class="logo" aria-hidden="true"></div>
@@ -361,9 +332,36 @@
   </div>
 
 <script>
-  const $ = (id) => document.getElementById(id);
-
-  // Must match index.html
+    // ===== SAFE DOM GETTER (missing element won't crash the whole app) =====
+  const $ = (id) => {
+    const el = document.getElementById(id);
+    if(el) return el;
+    // Dummy proxy element (no-op). Prevents 'Cannot set properties of null' errors.
+    return new Proxy({ __missing:true }, {
+      get(t, p){
+        if(p === "__missing") return true;
+        if(p === "style") return {};
+        if(p === "classList") return { add(){}, remove(){}, toggle(){}, contains(){ return false; } };
+        if(p === "dataset") return {};
+        if(p === "value") return "";
+        if(p === "checked") return false;
+        if(p === "innerHTML") return "";
+        if(p === "textContent") return "";
+        if(p === "appendChild") return ()=>{};
+        if(p === "removeChild") return ()=>{};
+        if(p === "insertAdjacentHTML") return ()=>{};
+        if(p === "querySelector") return ()=>null;
+        if(p === "querySelectorAll") return ()=>[];
+        if(p === "addEventListener") return ()=>{};
+        if(p === "removeEventListener") return ()=>{};
+        if(p === "focus") return ()=>{};
+        if(p === "click") return ()=>{};
+        return t[p];
+      },
+      set(t, p, v){ t[p] = v; return true; }
+    });
+  };
+// Must match index.html
   const LS_RES = "DELIVERY_RESERVATIONS_V1";
 
   const TYPE_LABEL = {
@@ -392,53 +390,6 @@
     $("clock").textContent = `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
   }
   setInterval(tick, 1000); tick();
-
-  // ===== 점포 로그인(서버) =====
-  let __STORE__ = null;
-
-  async function storeLogin(name, code){
-    const r = await apiPost("/api/stores/login", { name, code });
-    return r.store;
-  }
-
-  function requireStore(){
-    if(!__STORE__){
-      document.getElementById("storeGate").style.display = "flex";
-      const lo = document.getElementById("storeLogout");
-      if(lo) lo.style.display = "none";
-      return false;
-    }
-    return true;
-  }
-
-  // 게이트 버튼
-  const gateLogin = document.getElementById("gate_login");
-  const gateMsg = document.getElementById("gate_msg");
-  gateLogin.onclick = async()=>{
-    gateMsg.textContent = "";
-    const name = document.getElementById("gate_storeName").value.trim();
-    const code = document.getElementById("gate_storeCode").value.trim();
-    if(!name || !code){ gateMsg.innerHTML = '<span class="err">점포명/코드 입력</span>'; return; }
-    try{
-      __STORE__ = await storeLogin(name, code);
-      document.getElementById("storeGate").style.display = "none";
-      const lo = document.getElementById("storeLogout");
-      if(lo) lo.style.display = "";
-      gateMsg.innerHTML = '<span class="ok">로그인됨</span>';
-    }catch(e){
-      gateMsg.innerHTML = '<span class="err">없는 점포</span>';
-    }
-  };
-
-  const storeLogoutBtn = document.getElementById("storeLogout");
-  if(storeLogoutBtn){
-    storeLogoutBtn.onclick = ()=>{
-      __STORE__ = null;
-      document.getElementById("storeGate").style.display = "flex";
-      storeLogoutBtn.style.display = "none";
-    };
-  }
-
 
   function loadAll(){
     try{ return JSON.parse(localStorage.getItem(LS_RES) || "[]"); }
@@ -550,7 +501,6 @@
   function requireField(val){ return String(val || "").trim().length > 0; }
 
   $("w_issue").onclick = () => {
-    if(!requireStore()) return;
     if(!currentType){
       alert("유형이 없어. 홈에서 다시 들어와!");
       show("view_home");
@@ -604,8 +554,8 @@
       waybillNo: waybill,
       waybillIssuedAt: nowStr(),
 
-      storeName: (__STORE__ ? __STORE__.name : ""),
-      storeAcceptedAt: nowStr(),
+      storeName: "",
+      storeAcceptedAt: "",
       courier: { code:"", name:"", phone:"" },
       pickedAt: "",
 
@@ -644,17 +594,7 @@ ${rec.type === "INTERNATIONAL" ? `국가: ${escapeHtml(rec.package.country)}` : 
 발급시각: ${rec.waybillIssuedAt}
       </div>
       ${rec.type === "ECONOMY_CVS" ? `<div class="hint">※ 반값택배 안내: 최대 소요기간 6일(상황에 따라 변동 가능)</div>` : ""}
-      <div style="margin-top:12px; display:flex; gap:10px; flex-wrap:wrap;">
-        <button class="btn primary" data-print>운송장 출력</button>
-        <button class="btn" data-track>배송조회</button>
-      </div>
     `;
-    // 버튼 연결
-    const wr = $("walkinResult");
-    const pbtn = wr.querySelector("[data-print]");
-    const tbtn = wr.querySelector("[data-track]");
-    if(pbtn) pbtn.onclick = ()=> location.href = "./label.html?invoice_no=" + encodeURIComponent(rec.waybillNo);
-    if(tbtn) tbtn.onclick = ()=> location.href = "./tracking.html?invoice_no=" + encodeURIComponent(rec.waybillNo);
 
     // next customer
     $("walkinFormCard").style.display = "none";
@@ -702,15 +642,7 @@ ${rec.type === "INTERNATIONAL" ? `국가: ${escapeHtml(rec.package.country)}` : 
     $("reserveResult").style.display = "";
     if(!rec){
       $("reserveResult").innerHTML = `<div class="err">없는 예약번호야. 발급 불가!</div>`;
-      
-    // 운송장 출력/조회 버튼
-    const rr = $("reserveResult");
-    rr.insertAdjacentHTML("beforeend", `<div style="margin-top:12px; display:flex; gap:10px; flex-wrap:wrap;"><button class="btn primary" data-print>운송장 출력</button><button class="btn" data-track>배송조회</button></div>`);
-    const rp = rr.querySelector("[data-print]");
-    const rt = rr.querySelector("[data-track]");
-    if(rp) rp.onclick = ()=> location.href = "./label.html?invoice_no=" + encodeURIComponent(rec.waybillNo);
-    if(rt) rt.onclick = ()=> location.href = "./tracking.html?invoice_no=" + encodeURIComponent(rec.waybillNo);
-return;
+      return;
     }
     if(rec.waybillNo){
       $("reserveResult").innerHTML = `<div class="ok">이미 발급됨</div><div class="mono" style="margin-top:8px;">운송장: ${rec.waybillNo}</div>`;
@@ -759,12 +691,7 @@ return;
   }
 
   // init
-  (async()=>{
-    // 먼저 서버에서 접수 데이터 로딩
-    __RES_CACHE__ = await kvGet(LS_RES, []);
-    if(!Array.isArray(__RES_CACHE__)) __RES_CACHE__ = [];
-    // 점포 로그인 전까지는 게이트만 보이게
-    show("view_home");
-  })();</script>
+  show("view_home");
+</script>
 </body>
 </html>

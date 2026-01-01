@@ -128,9 +128,36 @@
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 
   <script>
-    const $ = (id)=>document.getElementById(id);
-
-    function qp(name){
+      // ===== SAFE DOM GETTER (missing element won't crash the whole app) =====
+  const $ = (id) => {
+    const el = document.getElementById(id);
+    if(el) return el;
+    // Dummy proxy element (no-op). Prevents 'Cannot set properties of null' errors.
+    return new Proxy({ __missing:true }, {
+      get(t, p){
+        if(p === "__missing") return true;
+        if(p === "style") return {};
+        if(p === "classList") return { add(){}, remove(){}, toggle(){}, contains(){ return false; } };
+        if(p === "dataset") return {};
+        if(p === "value") return "";
+        if(p === "checked") return false;
+        if(p === "innerHTML") return "";
+        if(p === "textContent") return "";
+        if(p === "appendChild") return ()=>{};
+        if(p === "removeChild") return ()=>{};
+        if(p === "insertAdjacentHTML") return ()=>{};
+        if(p === "querySelector") return ()=>null;
+        if(p === "querySelectorAll") return ()=>[];
+        if(p === "addEventListener") return ()=>{};
+        if(p === "removeEventListener") return ()=>{};
+        if(p === "focus") return ()=>{};
+        if(p === "click") return ()=>{};
+        return t[p];
+      },
+      set(t, p, v){ t[p] = v; return true; }
+    });
+  };
+function qp(name){
       const u = new URL(location.href);
       return u.searchParams.get(name) || "";
     }

@@ -165,6 +165,11 @@
   </style>
 </head>
 <body>
+
+<div id="__build_mark__" style="position:fixed;left:10px;bottom:10px;z-index:999999;background:#000;color:#0f0;padding:6px 10px;border-radius:10px;font:12px monospace;opacity:.85;">
+  BUILD: 2026-01-01 11:04:33 KST / safe-dollar-v1
+</div>
+
   <div class="panel">
     <header>
       <div class="brand">
@@ -190,6 +195,11 @@
             <div class="t">키오스크 화면 <span class="pill">kiosk.html</span></div>
             <div class="d">예약접수/현장접수 → 운송장 18자리 발급</div>
           </button>
+          <button class="bigbtn" id="goTracking">
+            <div class="t">배송조회 <span class="pill">tracking.html</span></div>
+            <div class="d">운송장 번호로 배송흐름 조회</div>
+          </button>
+
 
           <button class="bigbtn" id="goStore">
             <div class="t">점포 화면 <span class="pill">로그인</span></div>
@@ -456,9 +466,36 @@
   </div>
 
 <script>
-  const $ = (id) => document.getElementById(id);
-
-  // Shared with kiosk.html
+    // ===== SAFE DOM GETTER (missing element won't crash the whole app) =====
+  const $ = (id) => {
+    const el = document.getElementById(id);
+    if(el) return el;
+    // Dummy proxy element (no-op). Prevents 'Cannot set properties of null' errors.
+    return new Proxy({ __missing:true }, {
+      get(t, p){
+        if(p === "__missing") return true;
+        if(p === "style") return {};
+        if(p === "classList") return { add(){}, remove(){}, toggle(){}, contains(){ return false; } };
+        if(p === "dataset") return {};
+        if(p === "value") return "";
+        if(p === "checked") return false;
+        if(p === "innerHTML") return "";
+        if(p === "textContent") return "";
+        if(p === "appendChild") return ()=>{};
+        if(p === "removeChild") return ()=>{};
+        if(p === "insertAdjacentHTML") return ()=>{};
+        if(p === "querySelector") return ()=>null;
+        if(p === "querySelectorAll") return ()=>[];
+        if(p === "addEventListener") return ()=>{};
+        if(p === "removeEventListener") return ()=>{};
+        if(p === "focus") return ()=>{};
+        if(p === "click") return ()=>{};
+        return t[p];
+      },
+      set(t, p, v){ t[p] = v; return true; }
+    });
+  };
+// Shared with kiosk.html
   const LS_RES = "DELIVERY_RESERVATIONS_V1";
   const LS_STORES = "DELIVERY_STORES_V1";
   const LS_COURIERS = "DELIVERY_COURIERS_V1";
@@ -495,70 +532,14 @@
     return `RSV-${y}${m}${day}-${rand}`;
   }
 
-  
-  // ===== Cloud storage layer (Netlify Blobs via /api) =====
-  // LS_RES / LS_STORES / LS_COURIERS 는 서버(기기 공용), LS_SESSION 은 세션(이 기기만)
-  const CLOUD_KEYS = [LS_RES, LS_STORES, LS_COURIERS];
-  const __CACHE__ = Object.create(null);
-
-  async function apiGet(path){
-    const r = await fetch(path, { cache:"no-store" });
-    const t = await r.text();
-    let o; try{ o = JSON.parse(t); }catch{ o={ raw:t }; }
-    if(!r.ok) throw new Error(o?.error || ("HTTP_"+r.status));
-    return o;
-  }
-  async function apiPost(path, body){
-    const r = await fetch(path, {
-      method:"POST",
-      headers:{"Content-Type":"application/json"},
-      body: JSON.stringify(body),
-      cache:"no-store"
-    });
-    const t = await r.text();
-    let o; try{ o = JSON.parse(t); }catch{ o={ raw:t }; }
-    if(!r.ok) throw new Error(o?.error || ("HTTP_"+r.status));
-    return o;
-  }
-  async function cloudGet(key, defVal){
-    try{
-      const o = await apiGet("/api/kv/get?key=" + encodeURIComponent(key));
-      return (o && o.value !== undefined && o.value !== null) ? o.value : defVal;
-    }catch(e){
-      return defVal;
-    }
-  }
-  async function cloudSet(key, value){
-    await apiPost("/api/kv/set", { key, value });
-  }
-  async function preloadCloud(){
-    // 초기 로딩 동안 클릭 방지
-    document.documentElement.style.pointerEvents = "none";
-    try{
-      for(const k of CLOUD_KEYS){
-        const defVal = [];
-        __CACHE__[k] = await cloudGet(k, defVal);
-        if(!Array.isArray(__CACHE__[k])) __CACHE__[k] = defVal;
-      }
-    }finally{
-      document.documentElement.style.pointerEvents = "";
-    }
-  }
-
   function load(key){
-    return __CACHE__[key] ?? [];
+    try{ return JSON.parse(localStorage.getItem(key) || "[]"); } catch { return []; }
   }
   function save(key, val){
-    __CACHE__[key] = val;
-    cloudSet(key, val).catch(console.warn);
+    localStorage.setItem(key, JSON.stringify(val));
   }
   function loadSession(){
-    try{ return JSON.parse(sessionStorage.getItem(LS_SESSION) || "{}"); }catch{ return {}; }
-  }
-  function saveSession(sess){
-    sessionStorage.setItem(LS_SESSION, JSON.stringify(sess || {}));
-  }
-"); } catch { return {}; }
+    try{ return JSON.parse(localStorage.getItem(LS_SESSION) || "{}"); } catch { return {}; }
   }
   function saveSession(obj){
     localStorage.setItem(LS_SESSION, JSON.stringify(obj));
@@ -1044,18 +1025,16 @@ ${detailText(rec)}
   // wipe
   $("wipeAll").onclick = () => {
     if(!confirm("진짜 전체 데이터 삭제할까?")) return;
-    save(LS_RES, []);
-    save(LS_STORES, []);
-    save(LS_COURIERS, []);
-    sessionStorage.removeItem(LS_SESSION);
+    localStorage.removeItem(LS_RES);
+    localStorage.removeItem(LS_STORES);
+    localStorage.removeItem(LS_COURIERS);
+    localStorage.removeItem(LS_SESSION);
     alert("삭제 완료");
   };
 
   // init
-  (async()=>{
-    try{ await preloadCloud(); }catch(e){ console.warn(e); }
-    show("home");
-    setCustTab("reserve");
-  })();</script>
+  show("home");
+  setCustTab("reserve");
+</script>
 </body>
 </html>
