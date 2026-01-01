@@ -567,19 +567,37 @@ function openLabel(arg){
     return true;
   }
 
-  async function makeUniqueWaybill(prefix2){
-    // generate + re-try to avoid duplicates and invalid numbers
-    for(let i=0;i<20;i++){
-      const wb = await makeUniqueWaybill(prefix2);
-      if(!validateWaybill(wb, prefix2)) continue;
-      const exists = await findByWaybill(wb);
-      if(!exists) return wb;
-    }
-    throw new Error("송장 발급 실패(중복/검증 실패). 다시 시도해줘.");
+  function generateWaybill(prefix2){
+  // 18자리 숫자 / prefix(2자리) 고정 (81=국내, 23=국제, 30=반값, 37=반품)
+  const prefix = String(prefix2 || "81").trim().slice(0,2);
+  const restLen = 18 - prefix.length;
+
+  let digits = "";
+  if (window.crypto && crypto.getRandomValues){
+    const buf = new Uint8Array(restLen);
+    crypto.getRandomValues(buf);
+    for (let i=0;i<restLen;i++) digits += String(buf[i] % 10);
+  } else {
+    for (let i=0;i<restLen;i++) digits += String(Math.floor(Math.random()*10));
   }
 
+  // 극단 케이스 방지
+  if (/^0+$/.test(digits)) digits = digits.slice(0, -1) + "1";
+  return prefix + digits;
+}
 
-  function makeWalkinReserveNo(){
+async function makeUniqueWaybill(prefix2){
+  // 중복 방지: 최대 N회 시도 (재귀 금지)
+  for (let i=0;i<80;i++){
+    const wb = generateWaybill(prefix2);
+    if(!validateWaybill(wb, prefix2)) continue;
+    const exists = await findByWaybill(wb);
+    if(!exists) return wb;
+  }
+  throw new Error("송장 발급 실패(중복). 다시 시도해줘.");
+}
+
+function makeWalkinReserveNo(){
     const d = new Date();
     const y = d.getFullYear();
     const m = String(d.getMonth()+1).padStart(2,"0");
