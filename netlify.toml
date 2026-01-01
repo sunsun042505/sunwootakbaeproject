@@ -1,14 +1,2 @@
-[build]
-publish = "."
-functions = "netlify/functions"
-
-[[redirects]]
-from = "/api/*"
-to = "/.netlify/functions/data/:splat"
-status = 200
-
-# (optional) SPA fallback - comment out if you don't want it
-# [[redirects]]
-# from = "/*"
-# to = "/index.html"
-# status = 200
+[functions]
+  node_bundler = "esbuild"

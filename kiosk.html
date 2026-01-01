@@ -155,10 +155,43 @@
     @media (max-width: 520px){ .twoBtns{grid-template-columns: 1fr;} }
 
     .req{color: var(--warn); font-weight:900;}
-  </style>
+  
+    /* 점포 로그인 게이트 */
+    #storeGate{position:fixed; inset:0; background:rgba(0,0,0,.68); display:flex; align-items:center; justify-content:center; z-index:9999;}
+    #storeGate .panel{width:min(520px,92vw); border-radius:18px; padding:16px; background:rgba(0,0,0,.20); border:1px solid rgba(255,255,255,.10); box-shadow:0 18px 40px rgba(0,0,0,.35); backdrop-filter: blur(18px);}
+    #storeGate .row{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:12px;}
+    #storeGate input{width:100%; padding:12px; border-radius:14px; border:1px solid rgba(255,255,255,.10); background:rgba(0,0,0,.22); color:#fff;}
+    #storeGate .btnRow{display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-top:12px;}
+
+</style>
 </head>
 <body>
-  <div class="panel">
+
+  <div id="storeGate">
+    <div class="panel">
+      <div style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
+        <b style="font-size:16px;">점포 로그인</b>
+        <span class="pill">키오스크</span>
+      </div>
+      <div class="sub" style="margin-top:6px;">점포명 + 점포코드 입력 후 접수/발급 가능</div>
+      <div class="row">
+        <div>
+          <div class="sub" style="margin-bottom:6px;">점포명</div>
+          <input id="gate_storeName" placeholder="예: 선우택배 의왕지점" />
+        </div>
+        <div>
+          <div class="sub" style="margin-bottom:6px;">점포코드</div>
+          <input id="gate_storeCode" placeholder="예: 605" />
+        </div>
+      </div>
+      <div class="btnRow">
+        <button class="btn primary" id="gate_login" type="button">로그인</button>
+        <span class="sub" id="gate_msg"></span>
+      </div>
+    </div>
+  </div>
+
+<div class="panel">
     <header>
       <div class="brand">
         <div class="logo" aria-hidden="true"></div>
@@ -332,7 +365,58 @@
   </div>
 
 <script>
+
+  async function loadReservations(){
+    const v = await kvGet(STORAGE_KEYS.RES, []);
+    return Array.isArray(v) ? v : [];
+  }
+  async function saveReservations(arr){
+    await kvSet(STORAGE_KEYS.RES, arr);
+  }
+
+const APP_VERSION="1.0";
+
   const $ = (id) => document.getElementById(id);
+
+  const API_BASE = "/api";
+  const STORAGE_KEYS = {
+    RES: "DELIVERY_RESERVATIONS_V1",
+    STORES: "DELIVERY_STORES_V1"
+  };
+
+  async function apiGet(path){
+    const r = await fetch(path, { cache:"no-store" });
+    const t = await r.text();
+    let o; try{ o = JSON.parse(t); }catch{ o = { raw:t }; }
+    if(!r.ok) throw new Error(o?.error || ("HTTP_"+r.status));
+    return o;
+  }
+  async function apiPost(path, body, method="POST"){
+    const r = await fetch(path, {
+      method,
+      headers:{ "Content-Type":"application/json" },
+      body: body===undefined ? undefined : JSON.stringify(body),
+      cache:"no-store"
+    });
+    const t = await r.text();
+    let o; try{ o = JSON.parse(t); }catch{ o = { raw:t }; }
+    if(!r.ok) throw new Error(o?.error || ("HTTP_"+r.status));
+    return o;
+  }
+  async function kvGet(key, defVal){
+    try{
+      const o = await apiGet(`${API_BASE}/kv/get?key=${encodeURIComponent(key)}`);
+      return (o && o.value !== undefined && o.value !== null) ? o.value : defVal;
+    }catch(e){
+      return defVal;
+    }
+  }
+  async function kvSet(key, value){
+    return apiPost(`${API_BASE}/kv/set`, { key, value });
+  }
+
+
+
 
   // Must match index.html
   const LS_RES = "DELIVERY_RESERVATIONS_V1";
@@ -473,7 +557,8 @@
 
   function requireField(val){ return String(val || "").trim().length > 0; }
 
-  $("w_issue").onclick = () => {
+  $("w_issue").onclick = () => {{
+    if(!requireStore()) return;
     if(!currentType){
       alert("유형이 없어. 홈에서 다시 들어와!");
       show("view_home");
@@ -607,7 +692,8 @@ ${rec.type === "INTERNATIONAL" ? `국가: ${escapeHtml(rec.package.country)}` : 
   $("reserveHome").onclick = () => show("view_home");
   $("reserveRefresh").onclick = renderReserveList;
 
-  $("r_issue").onclick = () => {
+  $("r_issue").onclick = () => {{
+    if(!requireStore()) return;
     const resNo = $("reserveNo").value.trim();
     if(!resNo){ alert("예약번호를 입력해줘!"); return; }
 
@@ -624,7 +710,11 @@ ${rec.type === "INTERNATIONAL" ? `국가: ${escapeHtml(rec.package.country)}` : 
     const prefix2 = PREFIX[rec.type];
     const wb = makeWaybill(prefix2);
     rec.waybillNo = wb;
-    rec.status = "WAYBILL_ISSUED";
+    
+    rec.storeName = (__STORE__ ? __STORE__.name : (rec.storeName||""));
+    rec.storeCode = (__STORE__ ? __STORE__.code : (rec.storeCode||""));
+    try{ await upsertReservation(rec); }catch(e){ console.warn("upsert failed", e); }
+rec.status = "WAYBILL_ISSUED";
     rec.waybillIssuedAt = nowStr();
     upsert(rec);
 
@@ -665,6 +755,69 @@ ${rec.type === "INTERNATIONAL" ? `국가: ${escapeHtml(rec.package.country)}` : 
 
   // init
   show("view_home");
+
+
+  let __STORE__ = null;
+
+  async function storeLogin(name, code){
+    const r = await apiPost(`${API_BASE}/stores/login`, { name, code });
+    return r.store;
+  }
+  function requireStore(){
+    if(!__STORE__){
+      const g = document.getElementById("storeGate");
+      if(g) g.style.display = "flex";
+      return false;
+    }
+    return true;
+  }
+
+  // gate UI
+  const gateBtn = document.getElementById("gate_login");
+  const gateMsg = document.getElementById("gate_msg");
+  if(gateBtn){
+    gateBtn.onclick = async()=>{
+      gateMsg.textContent = "";
+      const name = document.getElementById("gate_storeName")?.value?.trim() || "";
+      const code = document.getElementById("gate_storeCode")?.value?.trim() || "";
+      if(!name || !code){ gateMsg.textContent = "점포명/코드 입력"; return; }
+      try{
+        __STORE__ = await storeLogin(name, code);
+        const g = document.getElementById("storeGate");
+        if(g) g.style.display = "none";
+        gateMsg.textContent = "";
+      }catch(e){
+        gateMsg.textContent = "없는 점포";
+      }
+    };
+  }
+
+
+  async function upsertReservation(rec){
+    return apiPost(`${API_BASE}/reservations/upsert`, { rec });
+  }
+
+  function attachPrintButtons(waybillNo){
+    // try common containers
+    const containers = ["resultBox","result","outBox","issuedBox","printArea","receipt","successBox"];
+    let box = null;
+    for(const id of containers){
+      const el = document.getElementById(id);
+      if(el){ box = el; break; }
+    }
+    if(!box) return;
+    const wrap = document.createElement("div");
+    wrap.style.cssText = "margin-top:12px; display:flex; gap:10px; flex-wrap:wrap;";
+    const b1 = document.createElement("button"); b1.className="btn primary"; b1.type="button"; b1.textContent="라벨 출력";
+    const b2 = document.createElement("button"); b2.className="btn"; b2.type="button"; b2.textContent="배송조회";
+    b1.onclick = ()=> location.href = "./label.html?invoice_no=" + encodeURIComponent(waybillNo);
+    b2.onclick = ()=> location.href = "./tracking.html?invoice_no=" + encodeURIComponent(waybillNo);
+    wrap.appendChild(b1); wrap.appendChild(b2);
+    box.appendChild(wrap);
+  }
+
+try{ const p=document.getElementById("appVersion"); if(p) p.textContent="v"+APP_VERSION; }catch{}
+
 </script>
 </body>
 </html>
