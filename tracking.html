@@ -3,352 +3,574 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>배송조회</title>
+  <meta http-equiv="Cache-Control" content="no-store, max-age=0" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <title>배송조회 | 선우택배</title>
   <style>
     :root{
-      --bg:#0b141a;
-      --card:rgba(255,255,255,.06);
-      --card2:rgba(255,255,255,.04);
-      --text:#e8f0ff;
-      --muted:rgba(255,255,255,.70);
-      --border:rgba(255,255,255,.12);
-      --accent:#2eff90;
-      --danger:#ff5b6a;
+      --bg1:#061225;
+      --bg2:#041c2b;
+      --card: rgba(255,255,255,.07);
+      --card2: rgba(255,255,255,.06);
+      --border: rgba(255,255,255,.10);
+      --text:#eaf1ff;
+      --muted: rgba(234,241,255,.68);
+      --muted2: rgba(234,241,255,.52);
+      --accent: #6ee7ff;
+      --accent2:#66f2c2;
+      --shadow: 0 20px 60px rgba(0,0,0,.35);
+      --radius: 18px;
     }
-    *{ box-sizing:border-box; }
+    *{box-sizing:border-box}
+    html,body{height:100%}
     body{
       margin:0;
-      font-family:system-ui,-apple-system,Segoe UI,Roboto,Noto Sans KR,Apple SD Gothic Neo,sans-serif;
-      background: radial-gradient(1100px 700px at 30% -10%, rgba(46,255,144,.18), transparent 60%),
-                  radial-gradient(900px 600px at 110% 10%, rgba(110,168,255,.18), transparent 55%),
-                  var(--bg);
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
       color:var(--text);
+      background:
+        radial-gradient(1200px 700px at 70% 35%, rgba(0,180,255,.25), transparent 60%),
+        radial-gradient(900px 600px at 35% 65%, rgba(110,231,255,.18), transparent 62%),
+        radial-gradient(900px 600px at 60% 70%, rgba(120,90,255,.16), transparent 62%),
+        linear-gradient(180deg, var(--bg1), var(--bg2));
+      overflow-x:hidden;
     }
-    .wrap{ max-width:980px; margin:0 auto; padding:18px; }
+
+    .wrap{
+      max-width: 1020px;
+      margin: 0 auto;
+      padding: 34px 18px 44px;
+      min-height: 100%;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+    }
+
+    .panel{
+      width: 100%;
+      max-width: 920px;
+      display:flex;
+      flex-direction:column;
+      gap: 14px;
+    }
+
     .topbar{
-      display:flex; gap:12px; align-items:center; justify-content:space-between; flex-wrap:wrap;
-      padding:14px; border:1px solid var(--border); border-radius:18px; background:linear-gradient(180deg,var(--card),var(--card2));
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap: 12px;
+      padding: 14px 16px;
+      border-radius: var(--radius);
+      background: linear-gradient(180deg, rgba(255,255,255,.09), rgba(255,255,255,.05));
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(10px);
     }
-    .title{ font-weight:900; font-size:18px; }
-    .sub{ color:var(--muted); font-size:12px; margin-top:4px; }
-    .btn{
-      border:1px solid var(--border);
-      background:transparent;
-      color:var(--text);
-      padding:10px 12px;
-      border-radius:12px;
-      font-weight:900;
-      cursor:pointer;
+    .brand{
+      display:flex;
+      align-items:center;
+      gap: 12px;
+      min-width: 0;
     }
-    .btn.primary{ border-color:rgba(46,255,144,.35); }
-    .btn:active{ transform:translateY(1px); }
+    .logo{
+      width: 34px; height: 34px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, rgba(110,231,255,.9), rgba(102,242,194,.9));
+      box-shadow: 0 10px 25px rgba(110,231,255,.16);
+      flex:0 0 auto;
+    }
+    .brand h1{
+      font-size: 16px;
+      line-height: 1.1;
+      margin: 0;
+      letter-spacing: -.2px;
+    }
+    .brand p{
+      margin: 4px 0 0;
+      font-size: 12px;
+      color: var(--muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 560px;
+    }
+    .rightpills{
+      display:flex;
+      align-items:center;
+      gap: 8px;
+      flex:0 0 auto;
+    }
+    .pill{
+      padding: 7px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      color: var(--muted);
+      border: 1px solid var(--border);
+      background: rgba(0,0,0,.12);
+      backdrop-filter: blur(10px);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns: 1.15fr .85fr;
+      gap: 14px;
+    }
+    @media (max-width: 860px){
+      .grid{grid-template-columns:1fr}
+      .brand p{max-width: 260px}
+    }
+
     .card{
-      margin-top:14px;
-      padding:14px;
-      border:1px solid var(--border);
-      border-radius:18px;
-      background:linear-gradient(180deg,var(--card),var(--card2));
+      border-radius: var(--radius);
+      background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.04));
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(10px);
+      padding: 14px 14px 16px;
+      min-height: 140px;
     }
-    label{ display:block; font-size:12px; color:var(--muted); margin-bottom:6px; }
-    input{
+    .card h2{
+      margin: 2px 0 10px;
+      font-size: 14px;
+      letter-spacing: -.2px;
+    }
+    .card .submeta{
+      float:right;
+      margin-top: -26px;
+      font-size: 12px;
+      color: var(--muted2);
+    }
+
+    .searchRow{
+      display:flex;
+      gap: 10px;
+      align-items:center;
+      margin-top: 6px;
+    }
+    .input{
       width:100%;
-      padding:12px 12px;
-      border-radius:12px;
-      border:1px solid var(--border);
-      background:rgba(0,0,0,.25);
-      color:var(--text);
+      padding: 12px 12px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,.12);
       outline:none;
-      font-size:14px;
+      background: rgba(0,0,0,.18);
+      color: var(--text);
+      font-size: 14px;
     }
-    .row{ display:grid; grid-template-columns: 2fr 1fr; gap:10px; align-items:end; }
-    .mono{ font-family: ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace; }
-    .grid2{ display:grid; grid-template-columns: 1fr 1fr; gap:10px; }
-    @media (max-width:720px){ .row{ grid-template-columns: 1fr; } .grid2{ grid-template-columns:1fr; } }
-
-    .kv{ display:flex; justify-content:space-between; gap:10px; padding:10px 12px; border:1px solid var(--border); border-radius:14px; background:rgba(0,0,0,.18); }
-    .kv .k{ color:var(--muted); font-size:12px; }
-    .kv .v{ font-weight:900; }
-    .pill{ display:inline-block; padding:3px 8px; border-radius:999px; border:1px solid var(--border); color:var(--muted); font-size:11px; }
-    .err{ color:var(--danger); font-weight:900; }
-    .ok{ color:var(--accent); font-weight:900; }
-
-    .timeline{ margin-top:10px; }
-    .item{
-      padding:12px;
-      border:1px solid var(--border);
-      border-radius:16px;
-      background:rgba(0,0,0,.18);
-      margin-top:10px;
+    .input::placeholder{color: rgba(234,241,255,.38)}
+    .btn{
+      padding: 11px 14px;
+      border-radius: 12px;
+      border: 1px solid rgba(110,231,255,.35);
+      background: linear-gradient(135deg, rgba(110,231,255,.22), rgba(102,242,194,.12));
+      color: var(--text);
+      cursor:pointer;
+      font-weight: 700;
+      letter-spacing: -.2px;
+      min-width: 76px;
     }
-    .t1{ font-weight:900; }
-    .t2{ color:var(--muted); font-size:12px; margin-top:6px; }
+    .btn:active{transform: translateY(1px)}
+    .hint{
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.4;
+    }
+    .statusline{
+      margin-top: 10px;
+      font-size: 12px;
+      color: rgba(234,241,255,.60);
+      min-height: 16px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .infoBox{
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,.10);
+      background: rgba(0,0,0,.14);
+      padding: 12px;
+    }
+    .infoGrid{
+      display:grid;
+      grid-template-columns: 92px 1fr;
+      gap: 8px 12px;
+      align-items:center;
+      font-size: 13px;
+    }
+    .k{
+      color: var(--muted2);
+    }
+    .v{
+      color: var(--text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .flowCard{
+      padding: 14px 14px 10px;
+    }
+    .flowWrap{
+      margin-top: 6px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,.10);
+      background: rgba(0,0,0,.14);
+      padding: 10px;
+      min-height: 84px;
+    }
+    .flowEmpty{
+      color: var(--muted2);
+      font-size: 12px;
+      padding: 8px 2px;
+    }
+    .event{
+      display:grid;
+      grid-template-columns: 160px 1fr;
+      gap: 10px;
+      padding: 10px 6px;
+      border-bottom: 1px solid rgba(255,255,255,.07);
+    }
+    .event:last-child{border-bottom:none}
+    .etime{
+      font-variant-numeric: tabular-nums;
+      font-size: 12px;
+      color: rgba(234,241,255,.64);
+    }
+    .emsg{
+      font-size: 13px;
+      color: var(--text);
+    }
+    .eplace{
+      margin-top: 3px;
+      font-size: 12px;
+      color: var(--muted2);
+    }
+
+    /* Top banner notification */
+    .banner{
+      position: fixed;
+      top: 14px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: min(920px, calc(100% - 24px));
+      padding: 10px 12px;
+      border-radius: 14px;
+      background: rgba(0,0,0,.55);
+      border: 1px solid rgba(110,231,255,.22);
+      color: rgba(234,241,255,.90);
+      backdrop-filter: blur(10px);
+      box-shadow: 0 20px 60px rgba(0,0,0,.35);
+      display:none;
+      z-index: 50;
+      font-size: 13px;
+    }
+    .banner b{color: var(--text)}
   </style>
 </head>
+
 <body>
+  <div class="banner" id="banner"></div>
+
   <div class="wrap">
-    <div class="topbar">
-      <div>
-        <div class="title">배송조회</div>
-        <div class="sub">운송장 번호로 조회하면 tracking.html?invoice_no=... 형태로 표시돼.</div>
-      </div>
-      <div style="display:flex; gap:10px; align-items:center;">
-        <button class="btn" id="goHome">메인으로</button>
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="row">
-        <div>
-          <label>운송장 번호(18자리)</label>
-          <input id="invoice" class="mono" placeholder="예: 81xxxxxxxxxxxxxxxx" />
+    <div class="panel">
+      <div class="topbar">
+        <div class="brand">
+          <div class="logo" aria-hidden="true"></div>
+          <div style="min-width:0">
+            <h1>배송조회</h1>
+            <p>운송장 번호로 조회 · 서버 저장 데이터 기준</p>
+          </div>
         </div>
-        <div>
-          <button class="btn primary" id="btnSearch" type="button">조회</button>
+        <div class="rightpills">
+          <div class="pill" id="clock">--:--:--</div>
+          <div class="pill" id="ver">v1.0</div>
         </div>
       </div>
-      <div class="sub" style="margin-top:10px;">• 조회 버튼을 누르면 주소창이 invoice_no 파라미터로 바뀌고, 결과가 아래에 표시돼.</div>
-    </div>
 
-    <div class="card" id="resultCard" style="display:none;">
-      <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;">
-        <div style="font-weight:900; font-size:16px;">조회 결과</div>
-        <span class="pill" id="wbPill">-</span>
+      <div class="grid">
+        <div class="card">
+          <h2>조회</h2>
+          <div class="submeta" id="apiMeta">API: -</div>
+
+          <div class="searchRow">
+            <input id="inp" class="input" placeholder="운송장 번호 (숫자만) 예: 81xxxxxxxxxxxxxxxx" inputmode="numeric" />
+            <button id="btn" class="btn">조회</button>
+          </div>
+
+          <div class="hint">운송장 번호를 입력하고 조회를 눌러줘.</div>
+          <div class="statusline" id="status"></div>
+        </div>
+
+        <div class="card">
+          <h2>기본 정보</h2>
+          <div class="submeta" id="basicMeta">-</div>
+
+          <div class="infoBox">
+            <div class="infoGrid" id="basicGrid">
+              <div class="k">서비스</div><div class="v">-</div>
+              <div class="k">배송사</div><div class="v">-</div>
+              <div class="k">보내는분</div><div class="v">-</div>
+              <div class="k">받는분</div><div class="v">-</div>
+              <div class="k">상품종류</div><div class="v">- / -</div>
+            </div>
+          </div>
+
+          <div class="hint">Tip) 새로 발급한 운송장은 서버 반영에 몇 초 걸릴 수 있어. 못 찾으면 자동으로 10초 정도 재시도해.</div>
+        </div>
       </div>
 
-      <div style="height:10px;"></div>
-      <div class="grid2">
-        <div class="kv"><div class="k">서비스</div><div class="v" id="svc">-</div></div>
-        <div class="kv"><div class="k">배송사</div><div class="v" id="carrier">-</div></div>
-        <div class="kv"><div class="k">보내는분</div><div class="v" id="sender">-</div></div>
-        <div class="kv"><div class="k">받는분</div><div class="v" id="receiver">-</div></div>
-        <div class="kv"><div class="k">상품종류</div><div class="v" id="kind">-</div></div>
-        <div class="kv"><div class="k">상태</div><div class="v" id="status">-</div></div>
+      <div class="card flowCard">
+        <h2>배송 흐름</h2>
+        <div class="submeta" id="flowMeta">-</div>
+
+        <div class="flowWrap" id="flowWrap">
+          <div class="flowEmpty" id="flowEmpty">-</div>
+        </div>
       </div>
-
-      <div class="timeline" id="timeline"></div>
-    </div>
-
-    <div class="card" id="errCard" style="display:none;">
-      <div class="err" id="errText">-</div>
     </div>
   </div>
 
-  <script>
-const APP_VERSION = "1.0";
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
 
-      // ===== SAFE DOM GETTER (missing element won't crash the whole app) =====
-  const $ = (id) => {
-    const el = document.getElementById(id);
-    if(el) return el;
-    return new Proxy({ __missing:true }, {
-      get(t, p){
-        if(p === "__missing") return true;
-        if(p === "style") return {};
-        if(p === "classList") return { add(){}, remove(){}, toggle(){}, contains(){ return false; } };
-        if(p === "dataset") return {};
-        if(p === "value") return "";
-        if(p === "checked") return false;
-        if(p === "innerHTML") return "";
-        if(p === "textContent") return "";
-        if(p === "appendChild") return ()=>{};
-        if(p === "removeChild") return ()=>{};
-        if(p === "insertAdjacentHTML") return ()=>{};
-        if(p === "querySelector") return ()=>null;
-        if(p === "querySelectorAll") return ()=>[];
-        if(p === "addEventListener") return ()=>{};
-        if(p === "removeEventListener") return ()=>{};
-        if(p === "focus") return ()=>{};
-        if(p === "click") return ()=>{};
-        return t[p];
-      },
-      set(t, p, v){ t[p] = v; return true; }
-    });
-  };
-function qp(name){
-      const u = new URL(location.href);
-      return u.searchParams.get(name) || "";
-    }
+  const bannerEl = $("banner");
+  function banner(msg, ms=1800){
+    bannerEl.textContent = msg;
+    bannerEl.style.display = "block";
+    clearTimeout(bannerEl._t);
+    bannerEl._t = setTimeout(()=> bannerEl.style.display="none", ms);
+  }
 
-    function escapeHtml(s){
-      return String(s ?? "").replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-    }
+  // clock
+  function tick(){
+    const d = new Date();
+    const hh = String(d.getHours()).padStart(2,"0");
+    const mm = String(d.getMinutes()).padStart(2,"0");
+    const ss = String(d.getSeconds()).padStart(2,"0");
+    $("clock").textContent = `${hh}:${mm}:${ss}`;
+  }
+  tick(); setInterval(tick, 1000);
 
-    function typeLabel(t){
-      const m = { DOMESTIC:"국내택배", INTERNATIONAL:"국제택배", ECONOMY_CVS:"반값택배", RETURN:"반품택배" };
-      return m[t] || t || "-";
-    }
+  const API_BASE = location.origin;
+  $("apiMeta").textContent = `API: ${API_BASE}`;
 
-    function carrierLabel(t){
-      if(t==="ECONOMY_CVS") return "선우네트웍스";
-      if(t==="INTERNATIONAL") return "네버랩인터내셔널에어포트(주)(인천국제공항)";
-      // DOMESTIC + RETURN default
-      return "선우택배";
-    }
+  function sleep(ms){ return new Promise(r=>setTimeout(r, ms)); }
 
-    const KIND_LABEL = {
-      DOCUMENT:"서류",
-      SMALL_BOX:"소형 박스",
-      MEDIUM_BOX:"중형 박스",
-      LARGE_BOX:"대형 박스",
-      FRAGILE:"파손주의",
-      ETC:"기타"
-    };
-    function kindLabel(k){
-      const key = (k || "").trim();
-      return key ? (KIND_LABEL[key] || key) : "-";
-    }
-
-    function statusLabel(s){
-      const m = {
-        RESERVED:"예약",
-        WAYBILL_ISSUED:"운송장발급",
-        FINAL:"점포접수",
-        PICKED_UP:"기사수거",
-        ARRIVED_COLLECTION_CENTER:"집화센터도착",
-        ARRIVED_HUB:"허브센터도착",
-        OUTBOUND_PREP:"출고준비",
-        STORE_DEPARTED:"점포출발",
-        ARRIVED_STORE:"점포도착",
-        DELIVERED_TO_CUSTOMER:"고객전달완료",
-
-        ARRIVED_SUB_TERMINAL:"서브터미널도착",
-        DEPARTED_SUB_TERMINAL:"서브터미널출발",
-        ARRIVED_HUB_TERMINAL:"허브터미널도착",
-        DEPARTED_HUB_TERMINAL:"허브터미널출발",
-        ARRIVED_DEST_TERMINAL:"배송지터미널도착",
-        DELIVERY_STARTED:"배송출발",
-        DELIVERED:"배송완료",
-
-        AIR_READY:"비행기 이륙 준비",
-        AIR_DEPARTED:"항공 출발",
-        ARRIVED_COUNTRY:"국가 도착",
-        DELIVERED_ADDRESS:"주소지 배송완료"
-      };
-      return m[s] || s || "-";
-    }
-
-    async function apiGetReservations(){
-      const r = await fetch("/api/reservations", { cache:"no-store" });
-      if(!r.ok) throw new Error("API error");
-      return await r.json();
-    }
-
-    function ensureEvents(rec){
-      if(!rec.events || !Array.isArray(rec.events)) rec.events = [];
-      return rec.events;
-    }
-
-    function renderEvents(rec){
-      const events = (rec.events && Array.isArray(rec.events)) ? rec.events.slice() : [];
-      // fallback for older fields
-      if(events.length === 0){
-        if(rec.storeAcceptedAt && rec.storeName) events.push({ at: rec.storeAcceptedAt, place: rec.storeName, message:"점포접수 하였습니다" });
-        if(rec.pickedAt && rec.storeName) events.push({ at: rec.pickedAt, place: rec.storeName, message:"기사수거 하였습니다" });
-      }
-      // sort by at asc
-      events.sort((a,b)=>String(a.at||"").localeCompare(String(b.at||"")));
-      return events;
-    }
-
-    function showErr(msg){
-      $("resultCard").style.display = "none";
-      $("errCard").style.display = "";
-      $("errText").textContent = msg;
-    }
-
-    function showResult(){
-      $("errCard").style.display = "none";
-      $("resultCard").style.display = "";
-    }
-
-    function fill(rec){
-      $("wbPill").textContent = rec.waybillNo || "-";
-      $("svc").textContent = typeLabel(rec.type);
-      $("carrier").textContent = carrierLabel(rec.type);
-      $("sender").textContent = (rec.sender?.name ? `${rec.sender.name} (${rec.sender.phone||"-"})` : "-");
-      $("receiver").textContent = (rec.receiver?.name ? `${rec.receiver.name} (${rec.receiver.phone||"-"})` : "-");
-      const k = rec.package?.kind ?? rec.kind ?? "";
-      $("kind").textContent = kindLabel(k);
-      $("status").textContent = statusLabel(rec.status);
-
-      const events = renderEvents(rec);
-      const tl = $("timeline");
-      tl.innerHTML = `<div style="margin-top:14px; font-weight:900;">배송흐름</div>` + (events.length? "" : `<div class="sub">아직 기록된 배송 단계가 없어.</div>`);
-      events.forEach(e=>{
-        const place = escapeHtml(e.place || "-");
-        const msg = escapeHtml(e.message || "-");
-        const at = escapeHtml(e.at || "-");
-        tl.innerHTML += `
-          <div class="item">
-            <div class="t1">${place} ${msg}</div>
-            <div class="t2">${at}</div>
-          </div>
-        `;
+  async function apiJson(path, opts={}, timeoutMs=8000){
+    const u = new URL(path, location.origin);
+    u.searchParams.set("_ts", String(Date.now())); // cache-bust
+    const ctrl = new AbortController();
+    const t = setTimeout(()=>ctrl.abort(), timeoutMs);
+    try{
+      const res = await fetch(u.toString(), {
+        ...opts,
+        headers: {
+          "cache-control":"no-store",
+          "pragma":"no-cache",
+          ...(opts.headers||{})
+        },
+        signal: ctrl.signal
       });
+      const text = await res.text();
+      let data = null;
+      try { data = text ? JSON.parse(text) : null; } catch { data = text; }
+      return { ok: res.ok, status: res.status, data };
+    } finally {
+      clearTimeout(t);
+    }
+  }
+
+  function normNo(v){
+    return String(v ?? "").trim().replace(/[^0-9]/g, "");
+  }
+  function candidates(rec){
+    const keys = ["waybillNo","invoiceNo","invoice_no","waybill","wb","reserveNo"];
+    const out = [];
+    for (const k of keys){
+      if (rec && rec[k]) out.push(normNo(rec[k]));
+    }
+    return out.filter(Boolean);
+  }
+
+  function serviceName(type){
+    switch(String(type||"").toUpperCase()){
+      case "DOMESTIC": return "국내택배";
+      case "INTERNATIONAL": return "국제택배";
+      case "ECONOMY_CVS": return "반값택배";
+      case "RETURN": return "반품택배";
+      default: return type ? String(type) : "-";
+    }
+  }
+  function carrierName(type){
+    switch(String(type||"").toUpperCase()){
+      case "ECONOMY_CVS": return "선우네트웍스";
+      case "INTERNATIONAL": return "네버랩인터내셔널에어포트(주)(인천국제공항)";
+      case "DOMESTIC": return "선우택배";
+      case "RETURN": return "선우택배";
+      default: return "-";
+    }
+  }
+
+  function pickNamePhone(obj){
+    if (!obj) return "-";
+    if (typeof obj === "string") return obj;
+    const name = obj.name ?? obj.storeName ?? "-";
+    const phone = obj.phone ?? obj.tel ?? "";
+    return phone ? `${name} (${phone})` : String(name || "-");
+  }
+
+  function productText(rec){
+    const pkg = rec?.package || {};
+    const kind = pkg.kind || rec?.kind || "-";
+    const w = (pkg.weightKg ?? pkg.weight ?? rec?.weightKg);
+    const wTxt = (w !== undefined && w !== null && w !== "") ? `${w}` : "-";
+    return `${kind} / ${wTxt}`;
+  }
+
+  function fmtTime(t){
+    if (!t) return "-";
+    const s = String(t);
+    const dt = new Date(s.includes("T") ? s : s.replace(" ", "T"));
+    if (isNaN(dt.getTime())) return s;
+    const yy = dt.getFullYear();
+    const mo = String(dt.getMonth()+1).padStart(2,"0");
+    const da = String(dt.getDate()).padStart(2,"0");
+    const hh = String(dt.getHours()).padStart(2,"0");
+    const mm = String(dt.getMinutes()).padStart(2,"0");
+    const ss = String(dt.getSeconds()).padStart(2,"0");
+    return `${yy}-${mo}-${da} ${hh}:${mm}:${ss}`;
+  }
+
+  function eventsFromRec(rec){
+    const ev = Array.isArray(rec?.events) ? rec.events : null;
+    if (ev && ev.length){
+      return ev.map(e => ({
+        time: e.time || e.at || e.createdAt || rec.updatedAt || rec.createdAt || "",
+        place: e.place || e.location || "-",
+        message: e.message || e.msg || "-"
+      })).sort((a,b)=> String(a.time).localeCompare(String(b.time)));
+    }
+    const out = [];
+    if (rec?.createdAt) out.push({ time: rec.createdAt, place:"예약", message:"예약이 생성되었습니다" });
+    if (rec?.status === "WAYBILL_ISSUED" || rec?.waybillIssuedAt) out.push({ time: rec.waybillIssuedAt || rec.updatedAt || "", place: rec.storeName || "-", message:"운송장이 발급되었습니다" });
+    if (rec?.storeAcceptedAt) out.push({ time: rec.storeAcceptedAt, place: rec.storeName || "-", message:"점포접수 하였습니다" });
+    return out;
+  }
+
+  function renderBasic(rec){
+    const grid = $("basicGrid");
+    const service = serviceName(rec?.type);
+    const carrier = carrierName(rec?.type);
+    const sender = pickNamePhone(rec?.sender) || "-";
+    const receiver = pickNamePhone(rec?.receiver) || "-";
+    const ptxt = productText(rec);
+
+    const rows = [
+      ["서비스", service],
+      ["배송사", carrier],
+      ["보내는분", sender],
+      ["받는분", receiver],
+      ["상품종류", ptxt],
+    ];
+    grid.innerHTML = rows.map(([k,v])=>`<div class="k">${k}</div><div class="v" title="${String(v).replaceAll('"',"&quot;")}">${v}</div>`).join("");
+    $("basicMeta").textContent = rec?.waybillNo ? `운송장: ${rec.waybillNo}` : (rec?.invoiceNo ? `운송장: ${rec.invoiceNo}` : "-");
+  }
+
+  function renderFlow(rec){
+    const wrap = $("flowWrap");
+    const empty = $("flowEmpty");
+    const evs = eventsFromRec(rec);
+
+    if (!evs || evs.length === 0){
+      wrap.innerHTML = `<div class="flowEmpty" id="flowEmpty">-</div>`;
+      $("flowMeta").textContent = "-";
+      return;
     }
 
-    function normalizeWb(s){
-      return String(s||"").replace(/\D/g,"").trim();
+    wrap.innerHTML = evs.map(e => `
+      <div class="event">
+        <div>
+          <div class="etime">${fmtTime(e.time)}</div>
+          <div class="eplace">${(e.place||"-")}</div>
+        </div>
+        <div class="emsg">${(e.message||"-")}</div>
+      </div>
+    `).join("");
+
+    const last = evs[evs.length-1];
+    $("flowMeta").textContent = last ? `${fmtTime(last.time)} · ${last.place||"-"}` : "-";
+  }
+
+  function validateWaybill(wb){
+    const n = normNo(wb);
+    if (!n) return { ok:false, msg:"운송장 번호를 입력해줘." };
+    if (n.length !== 18) return { ok:false, msg:"운송장 번호는 18자리 숫자여야 해." };
+    const prefix = n.slice(0,2);
+    const okPrefix = ["81","23","30","37"];
+    if (!okPrefix.includes(prefix)) return { ok:false, msg:"운송장 번호 시작(81/23/30/37)을 확인해줘." };
+    return { ok:true, value:n };
+  }
+
+  async function fetchRecordSmart(waybill){
+    const direct = await apiJson(`/api/reservations/byWaybill/${encodeURIComponent(waybill)}`);
+    if (direct.ok) return direct.data;
+
+    const listRes = await apiJson(`/api/reservations`);
+    if (listRes.ok && Array.isArray(listRes.data)){
+      const found = listRes.data.find(r => candidates(r).includes(waybill));
+      if (found) return found;
+    }
+    return null;
+  }
+
+  async function search(waybill){
+    const v = validateWaybill(waybill);
+    if (!v.ok){
+      $("status").textContent = v.msg;
+      banner(v.msg);
+      renderBasic({});
+      renderFlow({});
+      return;
     }
 
-    function extractList(json){
-      if(Array.isArray(json)) return json;
-      if(json && Array.isArray(json.items)) return json.items;
-      if(json && Array.isArray(json.reservations)) return json.reservations;
-      if(json && Array.isArray(json.data)) return json.data;
-      return [];
+    const wb = v.value;
+    $("status").textContent = "조회 중…";
+    $("flowWrap").innerHTML = `<div class="flowEmpty">조회 중…</div>`;
+    $("flowMeta").textContent = "-";
+
+    let rec = null;
+    for (let i=0;i<10;i++){
+      $("status").textContent = (i===0) ? "조회 중…" : `서버 반영 대기… 재시도 ${i}/10`;
+      rec = await fetchRecordSmart(wb);
+      if (rec) break;
+      await sleep(1000);
     }
 
-    async function doSearch(wb, pushUrl){
-      const invoiceRaw = String(wb || "").trim();
-      const invoice = normalizeWb(invoiceRaw);
-
-      if(!invoice){ showErr("운송장 번호를 입력해줘!"); return; }
-      if(invoice.length !== 18){ showErr("운송장 번호는 숫자 18자리여야 해!"); return; }
-
-      if(pushUrl){
-        const u = new URL(location.href);
-        u.searchParams.set("invoice_no", invoice);
-        history.replaceState(null, "", u.toString());
-      }
-
-      $("invoice").value = invoice;
-
-      let json;
-      try{
-        const r = await fetch("/api/reservations", { cache:"no-store" });
-        if(!r.ok) throw new Error("API error");
-        json = await r.json();
-      }catch(e){
-        showErr("서버에서 조회를 못 했어. 잠깐 후 다시 해줘!");
-        return;
-      }
-
-      const all = extractList(json);
-      const rec = all.find(x => normalizeWb(x.waybillNo || x.waybill || x.invoice_no || x.invoiceNo || "") === invoice);
-
-      if(!rec){
-        // 도움 메시지: 서버에 데이터는 있지만 해당 번호가 없을 수 있음
-        const hint = all.length ? `서버에는 ${all.length}건이 있지만, 이 번호는 못 찾았어.` : "서버에 저장된 접수 내역이 아직 없어.";
-        showErr(`등록된 운송장이 아님. (${hint})`);
-        return;
-      }
-
-      showResult();
-      fill(rec);
+    if (!rec){
+      const msg2 = "등록된 운송장을 찾지 못했어. (서버 반영이 늦거나 아직 접수 내역이 없을 수 있어)";
+      $("status").textContent = msg2;
+      banner(msg2, 2200);
+      renderBasic({ type: (wb.startsWith("30")?"ECONOMY_CVS": wb.startsWith("23")?"INTERNATIONAL": wb.startsWith("37")?"RETURN":"DOMESTIC") });
+      renderFlow({});
+      return;
     }
 
-    $("btnSearch").onclick = () => doSearch($("invoice").value, true);
-    $("goHome").onclick = () => { window.location.href = "./index.html"; };
+    $("status").textContent = "조회 완료";
+    renderBasic(rec);
+    renderFlow(rec);
+  }
 
-    // auto-run if invoice_no exists
-    const inv = qp("invoice_no");
-    if(inv){
-      doSearch(inv, false);
-    }
-  
-try{ const p=document.getElementById("appVersion"); if(p) p.textContent="v"+APP_VERSION; }catch(e){}
+  $("btn").addEventListener("click", ()=> search($("inp").value));
+  $("inp").addEventListener("keydown", (e)=>{ if (e.key === "Enter") search($("inp").value); });
 
+  const qs = new URLSearchParams(location.search);
+  const q = qs.get("invoice_no") || qs.get("waybillNo") || qs.get("waybill_no") || "";
+  if (q){
+    $("inp").value = q;
+    setTimeout(()=> search(q), 150);
+  }
+})();
 </script>
 </body>
 </html>
