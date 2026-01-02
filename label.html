@@ -241,7 +241,7 @@
         <div class="logo" aria-hidden="true"></div>
         <div style="min-width:0">
           <h1>운송장 라벨 출력</h1>
-          <p>label.html?invoice_no=운송장번호 또는 label.html?payload=...</p>
+          <p>label.html?invoice_no=운송장번호 또는 label.html?waybill=운송장번호 또는 label.html?payload=...</p>
         </div>
       </div>
       <div class="btns">
@@ -588,9 +588,9 @@
     }catch(e){}
   });
 
-  const wb = normNo(qp("invoice_no") || qp("waybillNo") || qp("waybill_no") || qp("invoiceNo") || qp("wb"));
+  const wb = normNo(qp("invoice_no") || qp("waybill") || qp("waybillNo") || qp("waybill_no") || qp("invoiceNo") || qp("wb"));
   if(!wb){
-    $("statusText").textContent = "운송장 번호가 없어.\nlabel.html?invoice_no=81... 또는 label.html?payload=... 로 열어줘.";
+    $("statusText").textContent = "운송장 번호가 없어.\nlabel.html?invoice_no=81... 또는 label.html?waybill=81... 또는 label.html?payload=... 로 열어줘.";
     renderBarcodeAndQR("000000000000000000");
   } else {
     loadRecord(wb);
