@@ -820,7 +820,8 @@ function makeWalkinReserveNo(){
 
       configureWalkinForType();
 
-  if(btnOrigLookup) btnOrigLookup.onclick = () => openWaybillFinderModal({
+  const _wOrigLookupBtn = document.getElementById('w_origLookup');
+  if(_wOrigLookupBtn) _wOrigLookupBtn.onclick = () => openWaybillFinderModal({
     title: "원 운송장 찾기",
     onPick: (hit) => {
       const wb = String(hit?.waybillNo||"").replace(/[^0-9]/g,"");
