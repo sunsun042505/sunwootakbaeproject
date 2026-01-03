@@ -207,11 +207,9 @@
             • 흐름: 고객 예약 → (kiosk.html) 운송장 발급 → 점포 접수 → 기사 집화 → 고객 조회에서 집화 완료 + 기사 정보 표시
           </div>
           <div class="actions">
-            <button class="btn danger" id="wipeAll">전체 데이터 삭제</button>
-          
-            <button class="btn" id="goTracking">배송조회</button>
-            <button class="btn" id="goWorkstatus">작업현황</button>
-            </div>
+            <button class="btn" id="homeTracking">배송조회</button>
+            <button class="btn" id="homeWorkstatus">작업현황</button>
+          </div>
         </div>
       </div>
 
@@ -565,18 +563,12 @@
     if(view === "store") renderStoreLists();
     if(view === "courier") renderCourierLists();
   }
-  document.querySelectorAll("[data-home]").forEach(b => b.onclick = () => { window.location.href = "./index.html"; });
+  document.querySelectorAll("[data-home]").forEach(b => b.onclick = () => show("home"));
 
-  $("goCustomer").onclick = () => { window.location.href = "./customer.html"; };
+  $("goCustomer").onclick = () => { show("customer"); };
   $("goKiosk").onclick = () => { window.location.href = "./kiosk.html"; };
-  $("goStore").onclick = () => { window.location.href = "./store.html"; };
-  $("goCourier").onclick = () => { window.location.href = "./LOGISTICS.html"; };
-  // ---------- HOME: extra buttons ----------
-  const trHome = $("goTracking");
-  if(trHome) trHome.onclick = () => { window.location.href = "./tracking.html"; };
-  const wsHome = $("goWorkstatus");
-  if(wsHome) wsHome.onclick = () => { window.location.href = "./Workstatus.html"; };
-
+  $("goStore").onclick = () => { show("store"); hydrateStoreSession(); };
+  $("goCourier").onclick = () => { show("courier"); hydrateCourierSession(); };
 
   // ---------- CUSTOMER: tabs ----------
   function setCustTab(which){
@@ -994,27 +986,15 @@ ${detailText(rec)}
     return escapeHtml(s).replaceAll("'","&#39;");
   }
 
-  // wipe
-  $("wipeAll").onclick = () => {
-    if(!confirm("진짜 전체 데이터 삭제할까?")) return;
-    localStorage.removeItem(LS_RES);
-    localStorage.removeItem(LS_STORES);
-    localStorage.removeItem(LS_COURIERS);
-    localStorage.removeItem(LS_SESSION);
-    alert("삭제 완료");
-  };
-
+// home quick links
+if(!$("homeTracking").__missing){
+  $("homeTracking").onclick = ()=>{ window.location.href = "./tracking.html"; };
+}
+if(!$("homeWorkstatus").__missing){
+  $("homeWorkstatus").onclick = ()=>{ window.location.href = "./Workstatus.html"; };
+}
   // init
-  const __page = (location.pathname.split("/").pop() || "index.html").toLowerCase();
-  let __start = "home";
-  if(__page === "store.html") __start = "store";
-  else if(__page === "logistics.html") __start = "courier";
-  else if(__page === "customer.html") __start = "customer";
-
-  show(__start);
-  // hydrate sessions only on dedicated pages
-  if(__start === "store") hydrateStoreSession();
-  if(__start === "courier") hydrateCourierSession();
+  show("home");
   setCustTab("reserve");
 </script>
 </body>

@@ -150,6 +150,19 @@
             <button class="primary" id="btnMove" style="flex:0 0 120px;">출발</button>
           </div>
 
+<div class="sep" style="margin:12px 0;"></div>
+<div class="box">
+  <div class="h">배송불가 / 반송접수</div>
+  <div class="muted">규격초과/무게불일치 등으로 배송이 불가하면 반송 운송장을 발급해.</div>
+  <label style="margin-top:10px;">사유(직접입력)</label>
+  <input id="returnReason" placeholder="예: 규격초과, 무게불일치, 주소불명" />
+  <div class="row" style="margin-top:10px;">
+    <button class="bad" id="btnReturn" type="button">배송불가 처리(반송접수)</button>
+    <button class="primary" id="btnReturnPrint" type="button" style="display:none;">반송라벨 출력</button>
+  </div>
+  <div class="hint" id="returnResult" style="display:none;"></div>
+</div>
+
           <details style="margin-top:10px;">
             <summary class="muted">등록 센터 목록 관리</summary>
             <div style="margin-top:10px;">
@@ -567,6 +580,82 @@ function logout() {
   $("btnSort").onclick = () => pushEvent("SORT");
   $("btnMove").onclick = () => pushEvent("MOVE", { dest: $("destSelect").value });
   $("btnAddDest").onclick = addDestination;
+// 배송불가 / 반송접수
+function genWaybill(prefix){
+  const p = String(prefix || "37");
+  const need = 18 - p.length;
+  const mix = (Date.now().toString() + Math.floor(Math.random()*1e16).toString() + Math.floor(Math.random()*1e16).toString()).replace(/\D/g,'');
+  const digits = (mix.length >= need ? mix.slice(-need) : mix.padStart(need,'0'));
+  return p + digits;
+}
+function deepClone(obj){
+  try{ return JSON.parse(JSON.stringify(obj||{})); }catch{ return obj||{}; }
+}
+async function upsertFallback(rec){
+  try{
+    const res = await apiPost("/reservations/upsert", rec);
+    return (res && res.rec) ? res.rec : rec;
+  }catch(e){
+    // fallback to KV update
+    const key = "DELIVERY_RESERVATIONS_V1";
+    const list = await kvGet(key, []);
+    const arr = Array.isArray(list) ? list : [];
+    const i = arr.findIndex(x => (x && (String(x.waybillNo||"") === String(rec.waybillNo||""))) || (x && x.reserveNo === rec.reserveNo));
+    if(i >= 0) arr[i] = rec; else arr.unshift(rec);
+    await kvSet(key, arr);
+    return rec;
+  }
+}
+async function doReturn(){
+  if(!currentRec){ banner("bad","먼저 운송장을 조회해줘."); return; }
+  const reason = ($("returnReason").value || "").trim();
+  if(!reason){ banner("bad","사유를 입력해줘."); return; }
+  const rail = ($("railNo").value || "").trim();
+  if(!rail || isNaN(Number(rail)) || Number(rail) < 1 || Number(rail) > 5){
+    banner("bad","레일 번호(1~5)를 먼저 입력해줘."); return;
+  }
+  const now = nowStr();
+  const iso = new Date().toISOString();
+  const place = `${HUB_NAME} ${rail}번 레일`;
+
+  // 원 운송장에 반송 이벤트 추가
+  currentRec.events = Array.isArray(currentRec.events) ? currentRec.events : [];
+  currentRec.events.push({ time: iso, place, message: `반송접수 하였습니다(사유:${reason})` });
+  currentRec.updatedAt = now;
+
+  // 반송 운송장 생성
+  const returnWb = genWaybill("37");
+  const ret = {
+    reserveNo: `RETURN-${now.replace(/[^0-9]/g,"").slice(0,8)}-${Math.random().toString(36).slice(2,7).toUpperCase()}`,
+    type: "RETURN",
+    status: "WAYBILL_ISSUED",
+    waybillNo: returnWb,
+    createdAt: now,
+    updatedAt: now,
+    originalWaybillNo: currentRec.waybillNo,
+    reason,
+    sender: deepClone(currentRec.receiver || currentRec.sender || {}),
+    receiver: deepClone(currentRec.sender || currentRec.receiver || {}),
+    package: deepClone(currentRec.package || {}),
+    storeName: currentRec.storeName || "",
+    addr: currentRec.addr || currentRec.address || "",
+    events: [{ time: iso, place, message: `반송 운송장이 발급되었습니다(사유:${reason})` }]
+  };
+
+  try{
+    currentRec = await upsertFallback(currentRec);
+    await upsertFallback(ret);
+    $("returnResult").style.display = "";
+    $("returnResult").textContent = `반송운송장: ${returnWb}`;
+    $("btnReturnPrint").style.display = "";
+    $("btnReturnPrint").onclick = ()=> window.open(`./label.html?invoice_no=${encodeURIComponent(returnWb)}`, "_blank");
+    banner("good","반송접수 완료! 반송라벨을 출력할 수 있어.");
+  }catch(e){
+    banner("bad","반송접수 저장 실패: " + e.message);
+  }
+}
+$("btnReturn").onclick = doReturn;
+
 
   // init
   ping();
