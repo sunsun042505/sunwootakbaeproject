@@ -21,3 +21,6 @@
 
 
 [FIX4] data.mjs와 data.js 둘 다 포함(어떤 확장자를 써도 /ping 동작). 기존에 netlify/functions/data.js가 남아있어도 OK.
+
+프로젝트 종료일: 2026/01/31 
+종료까지 D-25
