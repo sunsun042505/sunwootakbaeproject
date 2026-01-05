@@ -1,64 +1,51 @@
-export async function handler(event) {
+// netlify/functions/unipass.js
+export default async (req) => {
   try {
     const apiKey = process.env.UNIPASS_API_KEY;
     if (!apiKey) {
-      return json(500, { ok: false, error: "Missing UNIPASS_API_KEY (Netlify env var)" });
+      return new Response("UNIPASS_API_KEY is missing", { status: 500 });
     }
 
-    const qs = event.queryStringParameters || {};
-    const hblNo = (qs.hblNo || "").trim();  // 운송장번호(= HBL No)
-    const blYy = (qs.blYy || "").trim();    // 입항일(연도) or BL Year (명세대로)
+    const url = new URL(req.url);
+    const type = (url.searchParams.get("type") || "hbl").toLowerCase(); // hbl | mbl | carg
+    const no = (url.searchParams.get("no") || "").trim();
+    const blYy = (url.searchParams.get("blYy") || "").trim();
 
-    if (!hblNo) return json(400, { ok: false, error: "Missing hblNo" });
-    if (!blYy) return json(400, { ok: false, error: "Missing blYy" });
+    if (!no) return new Response("Missing no", { status: 400 });
+    if ((type === "hbl" || type === "mbl") && !blYy) {
+      return new Response("Missing blYy", { status: 400 });
+    }
 
-    const baseUrl =
-      "https://unipass.customs.go.kr:38010/ext/rest/cargCsclPrgsInfoQry/retrieveCargCsclPrgsInfo";
+    const endpoint = new URL(
+      "https://unipass.customs.go.kr:38010/ext/rest/cargCsclPrgsInfoQry/retrieveCargCsclPrgsInfo"
+    );
+    endpoint.searchParams.set("crkyCn", apiKey);
 
-    const url = new URL(baseUrl);
-    url.searchParams.set("crkyCn", apiKey);
-    url.searchParams.set("hblNo", hblNo);
-    url.searchParams.set("blYy", blYy);
+    if (type === "carg") {
+      endpoint.searchParams.set("cargMtNo", no);
+    } else if (type === "mbl") {
+      endpoint.searchParams.set("mblNo", no);
+      endpoint.searchParams.set("blYy", blYy);
+    } else {
+      // default: hbl
+      endpoint.searchParams.set("hblNo", no);
+      endpoint.searchParams.set("blYy", blYy);
+    }
 
-    // 통관은 초단위 실시간이 아니라서 캐시(60~120초) 추천
-    const resp = await fetch(url.toString(), {
+    const r = await fetch(endpoint.toString(), {
       method: "GET",
-      headers: {
-        "accept": "application/xml,text/xml,application/json,text/plain,*/*",
-      },
+      headers: { "User-Agent": "sunwoo-takbae/1.0" },
     });
 
-    const bodyText = await resp.text();
-
-    if (!resp.ok) {
-      // 유니패스가 XML 에러를 주는 경우가 많아서 원문 그대로 전달
-      return {
-        statusCode: resp.status,
-        headers: {
-          "content-type": resp.headers.get("content-type") || "text/plain; charset=utf-8",
-          "cache-control": "no-store",
-        },
-        body: bodyText,
-      };
-    }
-
-    return {
-      statusCode: 200,
+    const text = await r.text();
+    return new Response(text, {
+      status: r.status,
       headers: {
-        "content-type": resp.headers.get("content-type") || "text/plain; charset=utf-8",
-        "cache-control": "public, max-age=90",
+        "Content-Type": "application/xml; charset=utf-8",
+        "Cache-Control": "no-store",
       },
-      body: bodyText,
-    };
+    });
   } catch (e) {
-    return json(500, { ok: false, error: String(e?.message || e) });
+    return new Response(String(e?.message || e), { status: 500 });
   }
-}
-
-function json(statusCode, obj) {
-  return {
-    statusCode,
-    headers: { "content-type": "application/json; charset=utf-8" },
-    body: JSON.stringify(obj),
-  };
-}
+};

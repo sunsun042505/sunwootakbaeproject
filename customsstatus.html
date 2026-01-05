@@ -2,119 +2,218 @@
 <html lang="ko">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>통관 진행 조회</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>통관 진행 조회 | 선우택배</title>
   <style>
-    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; margin: 20px; }
-    .card { max-width: 820px; margin: 0 auto; padding: 16px; border: 1px solid #ddd; border-radius: 12px; }
-    .row { display:flex; gap: 8px; flex-wrap: wrap; }
-    input { flex: 1; min-width: 220px; padding: 10px; border: 1px solid #ccc; border-radius: 10px; }
-    button { padding: 10px 14px; border: 1px solid #ccc; border-radius: 10px; background: #fff; cursor: pointer; }
-    button:disabled { opacity: 0.6; cursor: not-allowed; }
-    pre { white-space: pre-wrap; word-break: break-word; background: #fafafa; border: 1px solid #eee; padding: 12px; border-radius: 10px; }
-    .muted { color:#666; font-size:13px; }
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;margin:0;background:#f6f7fb}
+    .wrap{max-width:920px;margin:0 auto;padding:20px}
+    .card{background:#fff;border:1px solid #e7e8ee;border-radius:14px;padding:16px;box-shadow:0 4px 18px rgba(0,0,0,.04)}
+    .row{display:flex;gap:10px;flex-wrap:wrap}
+    .row > *{flex:1}
+    label{font-size:12px;color:#555;display:block;margin-bottom:6px}
+    input,select,button{width:100%;padding:12px;border-radius:10px;border:1px solid #d9dbe6;font-size:14px;background:#fff}
+    button{cursor:pointer;border:none;background:#111;color:#fff;font-weight:700}
+    button:disabled{opacity:.6;cursor:not-allowed}
+    .muted{color:#777;font-size:12px}
+    .title{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+    .title h1{font-size:18px;margin:0}
+    .pill{font-size:12px;background:#f1f2f7;border:1px solid #e2e4ef;border-radius:999px;padding:6px 10px}
+    .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:12px}
+    .kv{border:1px solid #eef0f6;border-radius:12px;padding:10px;background:#fbfbfe}
+    .k{font-size:11px;color:#666;margin-bottom:4px}
+    .v{font-size:14px;color:#111;font-weight:650;word-break:break-word}
+    .timeline{margin-top:12px}
+    .step{border-left:3px solid #111;padding-left:10px;margin:10px 0}
+    .step .s1{font-weight:750}
+    .step .s2{font-size:12px;color:#666;margin-top:2px}
+    .error{border:1px solid #ffd7d7;background:#fff2f2;color:#b00020;border-radius:12px;padding:12px;margin-top:12px}
+    @media (max-width:640px){.grid{grid-template-columns:1fr}}
   </style>
 </head>
 <body>
-  <div class="card">
-    <h2>관세청(유니패스) 통관 진행 조회</h2>
-    <p class="muted">
-      ※ 이 페이지는 내부 확인용. 인증키는 Netlify Functions에서만 사용됩니다.
-    </p>
+  <div class="wrap">
+    <div class="card">
+      <div class="title">
+        <h1>통관 진행 조회</h1>
+        <div class="pill">운송장번호는 화면에 숨김</div>
+      </div>
 
-    <div class="row">
-      <input id="hblNo" placeholder="hblNo (운송장번호)" autocomplete="off" />
-      <input id="blYy" placeholder="blYy (입항일/연도)" autocomplete="off" />
-      <button id="btn">조회</button>
-      <button id="btnClear" type="button">지우기</button>
+      <div class="row">
+        <div>
+          <label>조회 타입</label>
+          <select id="type">
+            <option value="hbl">H B/L (일반적으로 직구)</option>
+            <option value="mbl">M B/L</option>
+            <option value="carg">화물관리번호</option>
+          </select>
+        </div>
+        <div>
+          <label>번호(운송장/BL/화물관리번호)</label>
+          <input id="no" placeholder="예) 18자리/영문+숫자" autocomplete="off" />
+        </div>
+        <div>
+          <label>B/L 년도(입항년도)</label>
+          <input id="blYy" placeholder="예) 2026" inputmode="numeric" />
+          <div class="muted">HBL/MBL일 때만 필요</div>
+        </div>
+        <div style="flex:0.6">
+          <label>&nbsp;</label>
+          <button id="btn">조회</button>
+        </div>
+      </div>
+
+      <div id="out"></div>
     </div>
-
-    <h3 style="margin-top:16px">요약(가능하면)</h3>
-    <pre id="summary">-</pre>
-
-    <h3 style="margin-top:16px">원문</h3>
-    <pre id="out">-</pre>
   </div>
 
-  <script>
-    const $ = (id) => document.getElementById(id);
+<script>
+  const $ = (id) => document.getElementById(id);
 
-    function setLoading(on) {
-      $("btn").disabled = on;
-      $("btn").textContent = on ? "조회 중..." : "조회";
+  function maskNo(s){
+    s = (s||"").toString().trim();
+    if (s.length <= 4) return "****";
+    return "****" + s.slice(-4);
+  }
+
+  function fmtDate(yyyymmdd){
+    const s = (yyyymmdd||"").trim();
+    if (!/^\d{8}$/.test(s)) return s;
+    return `${s.slice(0,4)}-${s.slice(4,6)}-${s.slice(6,8)}`;
+  }
+
+  function pick(xml, ...tags){
+    for (const t of tags){
+      const el = xml.getElementsByTagName(t)[0];
+      const val = el && (el.textContent||"").trim();
+      if (val) return val;
+    }
+    return "";
+  }
+
+  function renderCard(data){
+    // 핵심필드 카드
+    return `
+      <div class="card" style="margin-top:14px">
+        <div class="title" style="margin-bottom:6px">
+          <div class="pill">번호: ${maskNo(data.no)}</div>
+          <div class="pill">${data.progress || "진행상태 미확인"}</div>
+        </div>
+
+        <div class="grid">
+          <div class="kv"><div class="k">통관진행상태</div><div class="v">${data.csclPrgsStts || "-"}</div></div>
+          <div class="kv"><div class="k">처리일시</div><div class="v">${data.prcsDttm || "-"}</div></div>
+
+          <div class="kv"><div class="k">세관명</div><div class="v">${data.customs || "-"}</div></div>
+          <div class="kv"><div class="k">특송/선사/항공사</div><div class="v">${data.carrier || "-"}</div></div>
+
+          <div class="kv"><div class="k">품명</div><div class="v">${data.prnm || "-"}</div></div>
+          <div class="kv"><div class="k">입항일</div><div class="v">${data.etprDt || "-"}</div></div>
+
+          <div class="kv"><div class="k">적재항</div><div class="v">${data.ldpr || "-"}</div></div>
+          <div class="kv"><div class="k">양륙항</div><div class="v">${data.dspr || "-"}</div></div>
+        </div>
+
+        ${data.steps?.length ? `
+          <div class="timeline">
+            <div class="muted" style="margin:8px 0 4px">최근 처리 이력(민감번호는 표시 안 함)</div>
+            ${data.steps.map(s => `
+              <div class="step">
+                <div class="s1">${s.title}</div>
+                <div class="s2">${s.time || ""}${s.place ? " · " + s.place : ""}</div>
+              </div>
+            `).join("")}
+          </div>
+        ` : ``}
+      </div>
+    `;
+  }
+
+  async function fetchXML(type, no, blYy){
+    const qs = new URLSearchParams({ type, no });
+    if (blYy) qs.set("blYy", blYy);
+    const res = await fetch(`/.netlify/functions/unipass?${qs.toString()}`);
+    const txt = await res.text();
+    if (!res.ok) throw new Error(txt || `HTTP ${res.status}`);
+    const xml = new DOMParser().parseFromString(txt, "text/xml");
+    // 에러 메시지(UNIPASS는 종종 <ntceInfo>에 넣음)
+    const ntce = pick(xml, "ntceInfo");
+    return { xml, ntce };
+  }
+
+  function parse(xml, input){
+    // 1) 기본정보(Vo)
+    // csclPrgsStts/etprDt 등은 가이드/예시에서 확인되는 대표 태그들 :contentReference[oaicite:1]{index=1}
+    const vo = xml.getElementsByTagName("cargCsclPrgsInfoQryVo")[0] || xml;
+
+    const csclPrgsStts = (vo && vo.getElementsByTagName("csclPrgsStts")[0]?.textContent || "").trim();
+    const prnm = (vo && vo.getElementsByTagName("prnm")[0]?.textContent || "").trim();
+    const etprDtRaw = (vo && vo.getElementsByTagName("etprDt")[0]?.textContent || "").trim();
+    const etprDt = fmtDate(etprDtRaw);
+
+    // "세관/특송업체" 태그는 케이스별로 다를 수 있어서 후보 여러 개로 잡음(없으면 - 표시)
+    const customs = pick(vo, "cstmNm", "csclCstmNm", "dsprNm"); // dsprNm가 '서울/인천'처럼 나오는 예시 존재 :contentReference[oaicite:2]{index=2}
+    const carrier = pick(vo, "shcoFlcoNm", "shcoFlco", "shipNm", "airNm", "shipNat");
+
+    const ldpr = pick(vo, "ldprNm", "ldprCd");
+    const dspr = pick(vo, "dsprNm", "dsprCd");
+
+    // 2) 처리 이력(Vo[])
+    // 목록 태그명은 환경마다 다를 수 있어서, 흔히 쓰는 후보로 최대 6개만 뽑아줌(민감번호 제외)
+    const detailNodes =
+      Array.from(xml.getElementsByTagName("cargCsclPrgsInfoDtlQryVo")) ||
+      [];
+
+    const steps = detailNodes.slice(0, 6).map(n => ({
+      title: pick(n, "prcsStts", "csclPrgsStts", "rlbrCn", "dclrNoNm", "bfhnGdncCn") || "처리",
+      time: pick(n, "prcsDttm", "prcsDt", "rlbrDttm"),
+      place: pick(n, "shedNm", "shedSgn", "wghtUt", "dsprNm") // 위치성 정보만
+    })).filter(s => s.title || s.time || s.place);
+
+    // 처리일시는 "가장 최신 처리일시" 우선
+    const prcsDttm = steps[0]?.time || pick(vo, "prcsDttm");
+
+    const progress = pick(vo, "prgsStts", "csclPrgsStts", "prgsStCd") || csclPrgsStts;
+
+    return { no: input.no, csclPrgsStts, prcsDttm, customs, carrier, prnm, etprDt, ldpr, dspr, progress, steps };
+  }
+
+  $("btn").addEventListener("click", async () => {
+    const type = $("type").value;
+    const no = $("no").value.trim();
+    const blYy = $("blYy").value.trim();
+
+    $("out").innerHTML = "";
+    if (!no) {
+      $("out").innerHTML = `<div class="error">번호를 입력해</div>`;
+      return;
+    }
+    if ((type === "hbl" || type === "mbl") && !/^\d{4}$/.test(blYy)) {
+      $("out").innerHTML = `<div class="error">B/L 년도(4자리)를 정확히 넣어줘 (예: 2026)</div>`;
+      return;
     }
 
-    function pickXmlText(doc, tagNames) {
-      for (const t of tagNames) {
-        const el = doc.getElementsByTagName(t)[0];
-        if (el && el.textContent) return el.textContent.trim();
+    $("btn").disabled = true;
+    $("btn").textContent = "조회중…";
+    try {
+      const { xml, ntce } = await fetchXML(type, no, blYy);
+      const tCnt = (xml.getElementsByTagName("tCnt")[0]?.textContent || "").trim();
+
+      if (ntce && ntce.length) {
+        // 안내문이 있으면 먼저 보여줌(대부분 오류/안내)
+        $("out").innerHTML = `<div class="error">${ntce}</div>`;
+      } else if (tCnt === "0") {
+        $("out").innerHTML = `<div class="error">조회 결과가 없어. 번호/년도(입항년도) 다시 확인 ㄱㄱ</div>`;
+      } else {
+        const data = parse(xml, { no });
+        $("out").innerHTML = renderCard(data);
       }
-      return "";
+    } catch (e) {
+      $("out").innerHTML = `<div class="error">에러: ${e.message || e}</div>`;
+    } finally {
+      $("btn").disabled = false;
+      $("btn").textContent = "조회";
     }
-
-    function summarizeXml(xmlText) {
-      try {
-        const doc = new DOMParser().parseFromString(xmlText, "text/xml");
-
-        // 유니패스 응답 태그가 케이스별로 달라서 "후보 태그" 여러 개를 순서대로 시도
-        const status = pickXmlText(doc, ["csclPrgsStts", "prgsStts", "cargTrcnRelaBsopTpcd", "cargTp"]);
-        const procTime = pickXmlText(doc, ["prcsDttm", "prcsDt", "prcsTm", "dttm"]);
-        const msg = pickXmlText(doc, ["ntceInfo", "errMsg", "resultMsg", "msg"]);
-
-        let lines = [];
-        if (status) lines.push(`상태: ${status}`);
-        if (procTime) lines.push(`시간: ${procTime}`);
-        if (msg) lines.push(`메시지: ${msg}`);
-
-        if (lines.length === 0) {
-          return "요약 태그를 찾지 못했어. (원문 확인 필요)";
-        }
-        return lines.join("\n");
-      } catch (e) {
-        return "XML 파싱 실패. 원문 확인 필요";
-      }
-    }
-
-    $("btn").addEventListener("click", async () => {
-      const hblNo = $("hblNo").value.trim();
-      const blYy = $("blYy").value.trim();
-      if (!hblNo || !blYy) {
-        $("summary").textContent = "hblNo, blYy 둘 다 입력해줘.";
-        return;
-      }
-
-      setLoading(true);
-      $("summary").textContent = "조회 중...";
-      $("out").textContent = "";
-
-      try {
-        const url = `/.netlify/functions/customsStatus?hblNo=${encodeURIComponent(hblNo)}&blYy=${encodeURIComponent(blYy)}`;
-        const r = await fetch(url);
-        const text = await r.text();
-
-        $("out").textContent = text;
-
-        // XML이면 요약 시도
-        const ct = (r.headers.get("content-type") || "").toLowerCase();
-        if (ct.includes("xml") || text.trim().startsWith("<")) {
-          $("summary").textContent = summarizeXml(text);
-        } else {
-          $("summary").textContent = "XML이 아니라서 요약 대신 원문만 표시했어.";
-        }
-      } catch (e) {
-        $("summary").textContent = `조회 실패: ${e.message}`;
-      } finally {
-        setLoading(false);
-      }
-    });
-
-    $("btnClear").addEventListener("click", () => {
-      $("hblNo").value = "";
-      $("blYy").value = "";
-      $("summary").textContent = "-";
-      $("out").textContent = "-";
-      $("hblNo").focus();
-    });
-  </script>
+  });
+</script>
 </body>
 </html>
