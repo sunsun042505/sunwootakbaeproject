@@ -154,7 +154,7 @@ label{font-size:12px; color:var(--muted); display:block; margin:10px 0 6px}
       </div>
       <div style="overflow:auto; margin-top:10px">
         <table class="table">
-          <thead><tr><th>운송장</th><th>허브</th><th>레일</th><th>마지막 상태</th><th>시간</th></tr></thead>
+          <thead><tr><th>허브</th><th>레일</th><th>마지막 상태</th><th>시간</th></tr></thead>
           <tbody id="invTbody"></tbody>
         </table>
       </div>
@@ -394,8 +394,7 @@ async function load(){
       const pe = parseHubEvent(last);
       if(pe && ["in","sort","ret"].includes(pe.type||"")){
         inv.push({
-          waybill: rec.waybillNo || "-",
-          hub: pe.hub==="terminal" ? "허브터미널" : "허브센터",
+hub: pe.hub==="terminal" ? "허브터미널" : "허브센터",
           rail: pe.rail || "-",
           msg: last.message || "-",
           time: last.time
@@ -413,13 +412,12 @@ async function load(){
   const invBody = $("invTbody");
   invBody.innerHTML = inv.length ? inv.map(x=>`
     <tr>
-      <td>${x.waybill}</td>
-      <td>${x.hub}</td>
+<td>${x.hub}</td>
       <td>${x.rail}</td>
       <td>${x.msg}</td>
       <td>${fmtKst(x.time)}</td>
     </tr>
-  `).join("") : `<tr><td colspan="5" class="small">체류 물량 없음</td></tr>`;
+  `).join("") : `<tr><td colspan="4" class="small">체류 물량 없음</td></tr>`;
 
   const rs = $("railsSummary");
   rs.innerHTML = `

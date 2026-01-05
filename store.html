@@ -466,13 +466,7 @@
             <button class="btn" id="s_refresh">목록 새로고침</button>
           </div>
         </div>
-
-        <div class="card" id="storeListCard" style="display:none;">
-          <div style="font-weight:900; font-size:14px;">접수대기(운송장 발급됨) 목록</div>
-          <div class="sub">상태: WAYBILL_ISSUED (점포 접수 전)</div>
-          <div class="list" id="s_list"></div>
-        </div>
-      </div>
+</div>
 
       <!-- COURIER -->
       <div id="courier" style="display:none;">
@@ -1180,13 +1174,13 @@ $("goCustomer").onclick = () => { window.location.href = "./customer.html"; };
     if(sess.store?.name && sess.store?.code && await storeExists(sess.store.name, sess.store.code)){
       $("storeAuth").style.display = "none";
       $("storeDash").style.display = "";
-      $("storeListCard").style.display = "";
+      if($("storeListCard")) $("storeListCard").style.display = "none";
       $("s_who").textContent = `로그인: ${sess.store.name} (${sess.store.code})`;
       renderStoreLists();
     }else{
       $("storeAuth").style.display = "";
       $("storeDash").style.display = "none";
-      $("storeListCard").style.display = "none";
+      if($("storeListCard")) $("storeListCard").style.display = "none";
       $("s_authResult").style.display = "none";
     }
   }
@@ -1240,45 +1234,12 @@ $("goCustomer").onclick = () => { window.location.href = "./customer.html"; };
 
   // Store list (WAYBILL_ISSUED only)
   async function renderStoreLists(){
-    const sess = loadSession();
-    if(!sess.store) return;
-
-    const arr = (await getReservations())
-      .filter(x => x.waybillNo && x.status === "WAYBILL_ISSUED")
-      .slice(0, 50);
-
-    const box = $("s_list");
-    box.innerHTML = "";
-    if(arr.length === 0){
-      box.innerHTML = `<div class="item"><div style="color:var(--muted)">접수대기 내역이 없어.</div></div>`;
-      return;
-    }
-    arr.forEach(r => {
-      const p = pkgSummary(r);
-      const detailLine = `주소: ${p.addr} · 무게: ${p.w}kg · 종류: ${p.kind}` + (r.type==="INTERNATIONAL" ? ` · 국가: ${p.country || "-"}` : "");
-      box.innerHTML += `
-        <div class="item" data-wb="${escapeAttr(r.waybillNo)}">
-          <div style="display:flex; justify-content:space-between; gap:10px; align-items:center;">
-            <span class="tag mono">${escapeHtml(r.waybillNo)}</span>
-            <span class="tag">${escapeHtml(TYPE_LABEL[r.type])} · ${escapeHtml(statusLabel(r))}</span>
-          </div>
-          <div style="margin-top:6px; color:var(--muted); font-size:12px;">
-            예약번호: <span class="mono">${escapeHtml(r.reserveNo)}</span> · 발급: ${escapeHtml(r.waybillIssuedAt || "-")}
-          </div>
-          <div style="margin-top:6px; color:var(--muted); font-size:12px;">
-            ${escapeHtml(detailLine)}
-          </div>
-          <div class="hint">클릭하면 이 운송장을 점포 접수(최종접수)함</div>
-        </div>
-      `;
-    });
-    box.querySelectorAll(".item").forEach(el => {
-      el.onclick = () => {
-        const wb = el.dataset.wb;
-        $("s_waybill").value = wb;
-        storeAcceptWaybill(true);
-      };
-    });
+    // 개인정보(운송장) 노출 방지: 점포 '접수대기 목록' UI는 비활성화.
+    const card = document.getElementById("storeListCard");
+    if(card) card.style.display = "none";
+    const box = document.getElementById("s_list");
+    if(box) box.innerHTML = "";
+    return;
   }
 
   async function storeAcceptWaybill(askConfirm=false){

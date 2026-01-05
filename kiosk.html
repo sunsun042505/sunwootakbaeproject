@@ -308,13 +308,7 @@
         </div>
 
         <div class="card" id="walkinResult" style="display:none;"></div>
-
-        <div class="card">
-          <div style="font-weight:900; font-size:14px;">최근 운송장 발급(20개)</div>
-          <div class="sub">WAYBILL_ISSUED 이상만 표시</div>
-          <div class="list" id="walkinList"></div>
-        </div>
-      </div>
+</div>
 
       <!-- RESERVATION -->
       <div id="view_reserve" style="display:none;">
@@ -748,7 +742,7 @@
       <div style="height:10px;"></div>
       <div class="mono" style="white-space:pre-wrap; line-height:1.45;">
 유형: ${TYPE_LABEL[rec.type]}
-운송장(18자리): ${rec.waybillNo}
+운송장(18자리): [숨김]
 주소: ${escapeHtml(rec.addr)}
 무게(kg): ${rec.package.weightKg}
 종류: ${escapeHtml(rec.package.kind)}
@@ -770,46 +764,13 @@ ${rec.type === "INTERNATIONAL" ? `국가: ${escapeHtml(rec.package.country)}` : 
 
   // Recent waybill list
   async function renderWalkinList(){
-    const arr = (await loadAll())
-      .filter(x => x.waybillNo && (x.status === "WAYBILL_ISSUED" || x.status === "FINAL" || x.status === "PICKED_UP"))
-      .slice(0, 20);
-
-    const box = $("walkinList");
-    box.innerHTML = "";
-    if(arr.length === 0){
-      box.innerHTML = `<div class="item"><div style="color:var(--muted)">운송장 발급 내역이 없어.</div></div>`;
-      return;
-    }
-    arr.forEach(r => {
-      box.innerHTML += `
-        <div class="item">
-          <div style="display:flex; justify-content:space-between; gap:10px; align-items:center;">
-            <span class="tag mono">${escapeHtml(r.waybillNo)}</span>
-            <span class="tag">${escapeHtml(TYPE_LABEL[r.type] || r.type)} · ${escapeHtml(r.status)}</span>
-          </div>
-          <div style="margin-top:6px; color:var(--muted); font-size:12px;">
-            발급: ${escapeHtml(r.waybillIssuedAt || "-")}
-            ${r.storeName ? ` · 점포: ${escapeHtml(r.storeName)}` : ""}
-          </div>
-        </div>
-      `;
-    });
-
-    // 클릭하면 라벨 페이지 열기
-    box.querySelectorAll(".item").forEach(el => {
-      el.style.cursor = "pointer";
-      el.onclick = async () => {
-        const wb = (el.querySelector(".mono")?.textContent || "").trim();
-        if(!wb) return;
-        // try to find full record for payload
-        try{
-          const all = await apiGetReservations();
-          const rec = (all||[]).find(x => String(x.waybillNo||"") === wb);
-          if(rec) return openLabel(rec);
-        }catch(e){}
-        openLabel(wb);
-      };
-    });
+    // 개인정보(운송장) 노출 방지: "최근 운송장 발급 목록" UI는 비활성화.
+    const box = document.getElementById("walkinList");
+    if(box) box.innerHTML = "";
+    // 혹시 남아있다면 카드 자체도 숨김
+    const card = box && box.closest ? box.closest(".card") : null;
+    if(card) card.style.display = "none";
+    return;
   }
 
   // Reservation view
@@ -828,7 +789,7 @@ ${rec.type === "INTERNATIONAL" ? `국가: ${escapeHtml(rec.package.country)}` : 
       return;
     }
     if(rec.waybillNo){
-      $("reserveResult").innerHTML = `<div class="ok">이미 발급됨</div><div class="mono" style="margin-top:8px;">운송장: ${rec.waybillNo}</div>`;
+      $("reserveResult").innerHTML = `<div class="ok">이미 발급됨</div><div class="mono" style="margin-top:8px;">운송장: [숨김]</div>`;
       return;
     }
     const prefix2 = PREFIX[rec.type];
@@ -847,7 +808,7 @@ ${rec.type === "INTERNATIONAL" ? `국가: ${escapeHtml(rec.package.country)}` : 
       <div class="mono" style="margin-top:8px; white-space:pre-wrap; line-height:1.45;">
 예약번호: ${rec.reserveNo}
 유형: ${TYPE_LABEL[rec.type]}
-운송장: ${rec.waybillNo}
+운송장: [숨김]
       </div>
       <div style="height:10px;"></div>
       <button class="btn primary" id="r_print" type="button">운송장 출력</button>
@@ -874,7 +835,7 @@ ${rec.type === "INTERNATIONAL" ? `국가: ${escapeHtml(rec.package.country)}` : 
           </div>
           <div style="margin-top:6px; color:var(--muted); font-size:12px;">
             생성: ${escapeHtml(r.createdAt || "-")}
-            ${r.waybillNo ? ` · 운송장: <span class="mono">${escapeHtml(r.waybillNo)}</span>` : ""}
+            ""
           </div>
         </div>
       `;
