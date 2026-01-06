@@ -142,10 +142,10 @@
     <div class="top">
       <div class="brand">
         <h1>선우택배 · 통관 진행 조회</h1>
-        <div class="sub">관세청(유니패스) 결과에서 <b>핵심필드만 뽑아</b> 카드로 보여줌 · 운송장번호는 화면에 숨김</div>
+        <div class="sub">관세청(유니패스) 결과에서 <b>핵심필드만 뽑아</b> 카드로 보여줌 · 운송장번호는 화면에 표시</div>
       </div>
       <div class="chips">
-        <div class="chip">보안: 번호 마스킹</div>
+        <div class="chip">번호 표시</div>
         <div class="chip">UI: 진행 카드/타임라인</div>
         <div class="chip">Netlify Functions 프록시</div>
       </div>
@@ -186,7 +186,7 @@
 
         <div class="hint">
           • 결과가 안 나오면 <b>연도</b> 먼저 의심해라 ㅋㅋ<br/>
-          • 이 페이지는 내부용이라 번호 입력이 필요하지만, 화면에는 <b>끝 4자리만</b> 보이게 처리함.
+          • 번호 입력값을 그대로 화면에 표시함.
         </div>
 
         <div class="statusbar">
@@ -210,9 +210,7 @@
   }
 
   function maskNo(s){
-    s = (s||"").toString().trim();
-    if (s.length <= 4) return "****";
-    return "****" + s.slice(-4);
+    return (s||"").toString().trim();
   }
 
   function xmlText(node, tag){
@@ -227,6 +225,21 @@
     }
     return "";
   }
+
+  function pickByKeywords(xmlNode, keywords){
+    const all = xmlNode.getElementsByTagName("*");
+    for(let i=0;i<all.length;i++){
+      const el = all[i];
+      const tag = (el.tagName||"").toLowerCase();
+      const val = (el.textContent||"").trim();
+      if(!val) continue;
+      for(const kw of keywords){
+        if(tag.includes(kw)) return val;
+      }
+    }
+    return "";
+  }
+
 
   function fmtDate8(s){
     s = (s||"").trim();
@@ -252,10 +265,13 @@
     const dspr = pick(vo, ["dsprNm", "dsprCd"]);                             // 양륙항
 
     // ✅ 핵심: 세관명 / 특송업체(선사/항공사/특송사) 추정 후보들
-    const customsNm = pick(vo, ["cstmNm", "csclCstmNm", "dclrCstmNm", "cstm"]); 
-    const expressNm = pick(vo, ["shcoFlcoNm", "shcoFlco", "shipNm", "airNm", "trnpCoNm", "exprsCoNm"]);
+    let customsNm = pick(vo, ["cstmNm","csclCstmNm","dclrCstmNm","cstm","cstmNm","customsNm","cstmsNm"]);
+    let expressNm = pick(vo, ["shcoFlcoNm","shcoFlco","exprsCoNm","trnpCoNm","shipNm","airNm","carrierNm","carrNm","trnsCoNm","forwarderNm"]);
 
-    // 상세 이력
+    // 후보 태그로 못 찾으면 태그명 키워드 스캔(케이스별 태그명이 달라서)
+    if(!customsNm) customsNm = pickByKeywords(vo, ["cstm","custom","sekwan","cstmnm","csclcstm"]);
+    if(!expressNm) expressNm = pickByKeywords(vo, ["expr","trnp","ship","air","flco","shco","carrier","forward","courier"]);
+// 상세 이력
     const dtls = Array.from(root.getElementsByTagName("cargCsclPrgsInfoDtlQryVo"));
     const steps = dtls.slice(0, 8).map(n => ({
       title: pick(n, ["prcsStts", "csclPrgsStts", "bfhnGdncCn", "rlbrCn", "cargTrcnRelaBsopTpcdNm"]) || "처리",

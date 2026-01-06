@@ -1,10 +1,11 @@
-<!doctype html>
+<!DOCTYPE html>
+
 <html lang="ko">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>택배 시스템</title>
-  <style>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<title>택배 시스템</title>
+<style>
     :root{
       --bg:#0b1020; --text:#eaf0ff; --muted:#a9b3d7; --accent:#7aa2ff;
       --good:#35d07f; --warn:#ffcc66; --bad:#ff6b6b;
@@ -165,296 +166,256 @@
   </style>
 </head>
 <body>
-  <div class="panel">
-    <header>
-      <div class="brand">
-        <div class="logo" aria-hidden="true"></div>
-        <div>
-          <h1>택배 시스템</h1>
-          <div class="sub">고객(예약/조회) · 키오스크(운송장발급) · 점포(접수) · 기사(집화)</div>
-        </div>
-      </div>
-      <div class="badge" id="clock">—</div>
-    </header>
-
-    <div class="content">
-      <!-- HOME -->
-      <div id="home">
-        <div class="grid">
-          <button class="bigbtn" id="goCustomer">
-            <div class="t">고객 화면 <span class="pill">예약/조회</span></div>
-            <div class="d">예약 버튼 + 배송조회 버튼</div>
-          </button>
-
-          <button class="bigbtn" id="goKiosk">
-            <div class="t">키오스크 화면 <span class="pill">kiosk.html</span></div>
-            <div class="d">예약접수/현장접수 → 운송장 18자리 발급</div>
-          </button>
-
-          <button class="bigbtn" id="goStore">
-            <div class="t">점포 화면 <span class="pill">로그인</span></div>
-            <div class="d">점포 등록/로그인 → 운송장번호로 접수</div>
-          </button>
-
-          <button class="bigbtn" id="goCourier">
-            <div class="t">기사 화면 <span class="pill">로그인</span></div>
-            <div class="d">기사 등록/로그인 → 집화 처리</div>
-          </button>
-        </div>
-
-        <div class="card">
-          <div class="hint">
+<div class="panel">
+<header>
+<div class="brand">
+<div aria-hidden="true" class="logo"></div>
+<div>
+<h1>택배 시스템</h1>
+<div class="sub">고객(예약/조회) · 키오스크(운송장발급) · 점포(접수) · 기사(집화)</div>
+</div>
+</div>
+<div class="badge" id="clock">—</div>
+</header>
+<div class="content">
+<!-- HOME -->
+<div id="home">
+<div class="grid">
+<button class="bigbtn" id="goCustomer">
+<div class="t">고객 화면 <span class="pill">예약/조회</span></div>
+<div class="d">예약 버튼 + 배송조회 버튼</div>
+</button>
+<button class="bigbtn" id="goKiosk">
+<div class="t">키오스크 화면 <span class="pill">kiosk.html</span></div>
+<div class="d">예약접수/현장접수 → 운송장 18자리 발급</div>
+</button>
+<button class="bigbtn" id="goStore">
+<div class="t">점포 화면 <span class="pill">로그인</span></div>
+<div class="d">점포 등록/로그인 → 운송장번호로 접수</div>
+</button>
+<button class="bigbtn" id="goCourier">
+<div class="t">기사 화면 <span class="pill">로그인</span></div>
+<div class="d">기사 등록/로그인 → 집화 처리</div>
+</button><button class="bigbtn" id="goTrackBig"><div class="t">배송조회 <span class="pill">고객</span></div><div class="d">예약/조회 화면의 배송조회 탭으로 이동</div></button><button class="bigbtn" id="goWorkBig"><div class="t">작업현황 <span class="pill">Workstatus.html</span></div><div class="d">허브/레일/상태/시간 작업현황</div></button><button class="bigbtn" id="goCustomsBig"><div class="t">통관조회 <span class="pill">customsstatus.html</span></div><div class="d">특송/세관 통관 진행 조회</div></button>
+</div>
+<div class="card">
+<div class="hint">
             • 흐름: 고객 예약 → (kiosk.html) 운송장 발급 → 점포 접수 → 기사 집화 → 고객 조회에서 집화 완료 + 기사 정보 표시
           
-            <button class="btn" id="goTracking">배송조회</button>
-            <button class="btn" id="goWorkstatus">작업현황</button>
-            </div>
-        </div>
-      </div>
+            
 
-      <!-- CUSTOMER -->
-      <div id="customer" style="display:none;">
-        <div class="card" style="margin-top:0;">
-          <div style="font-weight:900; font-size:16px;">고객 화면</div>
-          <div class="sub">예약 / 배송조회</div>
-          <div class="tabs">
-            <div class="tab on" id="tabReserve">예약</div>
-            <div class="tab" id="tabTrack">배송조회</div>
-          </div>
-          <div class="actions">
-            <button class="btn ghost" data-home>기본 화면</button>
-          </div>
-        </div>
-
-        <!-- Reserve form -->
-        <div class="card" id="custReserveCard">
-          <div style="font-weight:900; font-size:15px;">예약하기</div>
-          <div class="sub">예약번호 발급(운송장은 키오스크에서 생성)</div>
-          <div style="height:12px;"></div>
-
-          <div class="row">
-            <div>
-              <label>접수 유형</label>
-              <select id="c_type">
-                <option value="DOMESTIC">국내</option>
-                <option value="INTERNATIONAL">국제</option>
-                <option value="ECONOMY_CVS">반값택배(편의점)</option>
-                <option value="RETURN">반품</option>
-              </select>
-            </div>
-            <div>
-              <label>수거/접수 방식</label>
-              <select id="c_pickup">
-                <option value="STORE">매장 접수</option>
-                <option value="PICKUP">기사 수거(예약)</option>
-              </select>
-            </div>
-
-            <div>
-              <label>보내는 사람 이름</label>
-              <input id="c_sName" placeholder="예: 홍길동" />
-            </div>
-            <div>
-              <label>보내는 사람 연락처</label>
-              <input id="c_sPhone" placeholder="예: 010-1234-5678" />
-            </div>
-
-            <div>
-              <label>받는 사람 이름(선택)</label>
-              <input id="c_rName" placeholder="예: 김철수" />
-            </div>
-            <div>
-              <label>받는 사람 연락처(선택)</label>
-              <input id="c_rPhone" placeholder="예: 010-0000-0000" />
-            </div>
-
-            <div style="grid-column:1/-1">
-              <label>주소/지점명(선택)</label>
-              <input id="c_addr" placeholder="예: 배송지 주소 / 편의점 지점명+주소" />
-            </div>
-
-            <div style="grid-column:1/-1">
-              <label>요청사항(선택)</label>
-              <textarea id="c_memo" placeholder="예: 문 앞에 놓아주세요"></textarea>
-            </div>
-          </div>
-
-          <div class="actions">
-            <button class="btn primary" id="c_reserveBtn">예약하기</button>
-          </div>
-
-          <div class="hint">• 예약번호 생성 후 kiosk.html에서 “예약접수”로 운송장(18자리)이 만들어짐.</div>
-        </div>
-
-        <div class="card" id="custReserveResult" style="display:none;"></div>
-
-        <!-- Tracking -->
-        <div class="card" id="custTrackCard" style="display:none;">
-          <div style="font-weight:900; font-size:15px;">배송조회</div>
-          <div class="sub">운송장 번호로 조회 (등록된 운송장인지 확인)</div>
-
-          <div style="height:12px;"></div>
-          <div class="row" style="grid-template-columns: 2fr 1fr;">
-            <div>
-              <label>운송장 번호(18자리)</label>
-              <input id="t_waybill" class="mono" placeholder="예: 81xxxxxxxxxxxxxxxx" />
-            </div>
-            <div>
-              <button class="btn primary" id="t_search">조회</button>
-            </div>
-          </div>
-
-          <div class="card" id="t_result" style="display:none;"></div>
-
-          <div class="hint">
-            • 집화 완료 상태면 기사 이름/전화번호가 표시돼.<br>
-            • 점포 접수까지 됐으면 점포명도 표시돼.<br>
+</div>
+</div>
+</div>
+<!-- CUSTOMER -->
+<div id="customer" style="display:none;">
+<div class="card" style="margin-top:0;">
+<div style="font-weight:900; font-size:16px;">고객 화면</div>
+<div class="sub">예약 / 배송조회</div>
+<div class="tabs">
+<div class="tab on" id="tabReserve">예약</div>
+<div class="tab" id="tabTrack">배송조회</div>
+</div>
+<div class="actions">
+<button class="btn ghost" data-home="">기본 화면</button>
+</div>
+</div>
+<!-- Reserve form -->
+<div class="card" id="custReserveCard">
+<div style="font-weight:900; font-size:15px;">예약하기</div>
+<div class="sub">예약번호 발급(운송장은 키오스크에서 생성)</div>
+<div style="height:12px;"></div>
+<div class="row">
+<div>
+<label>접수 유형</label>
+<select id="c_type">
+<option value="DOMESTIC">국내</option>
+<option value="INTERNATIONAL">국제</option>
+<option value="ECONOMY_CVS">반값택배(편의점)</option>
+<option value="RETURN">반품</option>
+</select>
+</div>
+<div>
+<label>수거/접수 방식</label>
+<select id="c_pickup">
+<option value="STORE">매장 접수</option>
+<option value="PICKUP">기사 수거(예약)</option>
+</select>
+</div>
+<div>
+<label>보내는 사람 이름</label>
+<input id="c_sName" placeholder="예: 홍길동"/>
+</div>
+<div>
+<label>보내는 사람 연락처</label>
+<input id="c_sPhone" placeholder="예: 010-1234-5678"/>
+</div>
+<div>
+<label>받는 사람 이름(선택)</label>
+<input id="c_rName" placeholder="예: 김철수"/>
+</div>
+<div>
+<label>받는 사람 연락처(선택)</label>
+<input id="c_rPhone" placeholder="예: 010-0000-0000"/>
+</div>
+<div style="grid-column:1/-1">
+<label>주소/지점명(선택)</label>
+<input id="c_addr" placeholder="예: 배송지 주소 / 편의점 지점명+주소"/>
+</div>
+<div style="grid-column:1/-1">
+<label>요청사항(선택)</label>
+<textarea id="c_memo" placeholder="예: 문 앞에 놓아주세요"></textarea>
+</div>
+</div>
+<div class="actions">
+<button class="btn primary" id="c_reserveBtn">예약하기</button>
+</div>
+<div class="hint">• 예약번호 생성 후 kiosk.html에서 “예약접수”로 운송장(18자리)이 만들어짐.</div>
+</div>
+<div class="card" id="custReserveResult" style="display:none;"></div>
+<!-- Tracking -->
+<div class="card" id="custTrackCard" style="display:none;">
+<div style="font-weight:900; font-size:15px;">배송조회</div>
+<div class="sub">운송장 번호로 조회 (등록된 운송장인지 확인)</div>
+<div style="height:12px;"></div>
+<div class="row" style="grid-template-columns: 2fr 1fr;">
+<div>
+<label>운송장 번호(18자리)</label>
+<input class="mono" id="t_waybill" placeholder="예: 81xxxxxxxxxxxxxxxx"/>
+</div>
+<div>
+<button class="btn primary" id="t_search">조회</button>
+</div>
+</div>
+<div class="card" id="t_result" style="display:none;"></div>
+<div class="hint">
+            • 집화 완료 상태면 기사 이름/전화번호가 표시돼.<br/>
+            • 점포 접수까지 됐으면 점포명도 표시돼.<br/>
             • 주소/무게/종류/국가(국제)도 같이 표시돼.
           </div>
-        </div>
-      </div>
-
-      <!-- STORE -->
-      <div id="store" style="display:none;">
-        <div class="card" style="margin-top:0;">
-          <div style="font-weight:900; font-size:16px;">점포 화면</div>
-          <div class="sub">점포 등록/로그인 → 운송장 번호로 “접수(최종접수)”</div>
-          <div class="actions">
-            <button class="btn ghost" data-home>기본 화면</button>
-          </div>
-        </div>
-
-        <!-- Store auth -->
-        <div class="card" id="storeAuth">
-          <div style="font-weight:900; font-size:15px;">점포 로그인</div>
-          <div class="sub">점포명 + 점포코드</div>
-          <div style="height:12px;"></div>
-
-          <div class="row">
-            <div>
-              <label>점포명</label>
-              <input id="s_name" placeholder="예: GS25 강남점" />
-            </div>
-            <div>
-              <label>점포코드</label>
-              <input id="s_code" class="mono" placeholder="예: STORE-001" />
-            </div>
-          </div>
-
-          <div class="actions">
-            <button class="btn" id="s_register">점포등록</button>
-            <button class="btn primary" id="s_login">로그인</button>
-          </div>
-
-          <div class="card" id="s_authResult" style="display:none;"></div>
-        </div>
-
-        <!-- Store dashboard -->
-        <div class="card" id="storeDash" style="display:none;">
-          <div style="display:flex; justify-content:space-between; gap:10px; align-items:center;">
-            <div>
-              <div style="font-weight:900; font-size:15px;">점포 작업</div>
-              <div class="sub" id="s_who">—</div>
-            </div>
-            <span class="tag">운송장 접수</span>
-          </div>
-
-          <div style="height:12px;"></div>
-
-          <div class="row" style="grid-template-columns: 2fr 1fr;">
-            <div>
-              <label>운송장 번호 입력(18자리)</label>
-              <input id="s_waybill" class="mono" placeholder="예: 81xxxxxxxxxxxxxxxx" />
-            </div>
-            <div>
-              <button class="btn primary" id="s_accept">접수(최종접수)</button>
-            </div>
-          </div>
-
-          <div class="card" id="s_acceptResult" style="display:none;"></div>
-
-          <div class="hint">
-            • “접수”하면 해당 운송장에 점포명이 저장되고, 기사 화면에 이 건이 표시돼.<br>
+</div>
+</div>
+<!-- STORE -->
+<div id="store" style="display:none;">
+<div class="card" style="margin-top:0;">
+<div style="font-weight:900; font-size:16px;">점포 화면</div>
+<div class="sub">점포 등록/로그인 → 운송장 번호로 “접수(최종접수)”</div>
+<div class="actions">
+<button class="btn ghost" data-home="">기본 화면</button>
+</div>
+</div>
+<!-- Store auth -->
+<div class="card" id="storeAuth">
+<div style="font-weight:900; font-size:15px;">점포 로그인</div>
+<div class="sub">점포명 + 점포코드</div>
+<div style="height:12px;"></div>
+<div class="row">
+<div>
+<label>점포명</label>
+<input id="s_name" placeholder="예: GS25 강남점"/>
+</div>
+<div>
+<label>점포코드</label>
+<input class="mono" id="s_code" placeholder="예: STORE-001"/>
+</div>
+</div>
+<div class="actions">
+<button class="btn" id="s_register">점포등록</button>
+<button class="btn primary" id="s_login">로그인</button>
+</div>
+<div class="card" id="s_authResult" style="display:none;"></div>
+</div>
+<!-- Store dashboard -->
+<div class="card" id="storeDash" style="display:none;">
+<div style="display:flex; justify-content:space-between; gap:10px; align-items:center;">
+<div>
+<div style="font-weight:900; font-size:15px;">점포 작업</div>
+<div class="sub" id="s_who">—</div>
+</div>
+<span class="tag">운송장 접수</span>
+</div>
+<div style="height:12px;"></div>
+<div class="row" style="grid-template-columns: 2fr 1fr;">
+<div>
+<label>운송장 번호 입력(18자리)</label>
+<input class="mono" id="s_waybill" placeholder="예: 81xxxxxxxxxxxxxxxx"/>
+</div>
+<div>
+<button class="btn primary" id="s_accept">접수(최종접수)</button>
+</div>
+</div>
+<div class="card" id="s_acceptResult" style="display:none;"></div>
+<div class="hint">
+            • “접수”하면 해당 운송장에 점포명이 저장되고, 기사 화면에 이 건이 표시돼.<br/>
             • 목록/확인창에 주소/무게/종류도 같이 보여줌.
           </div>
-
-          <div class="actions">
-            <button class="btn" id="s_logout">로그아웃</button>
-            <button class="btn" id="s_refresh">목록 새로고침</button>
-          </div>
-        </div>
-
-        <div class="card" id="storeListCard" style="display:none;">
-          <div style="font-weight:900; font-size:14px;">접수대기(운송장 발급됨) 목록</div>
-          <div class="sub">상태: WAYBILL_ISSUED (점포 접수 전)</div>
-          <div class="list" id="s_list"></div>
-        </div>
-      </div>
-
-      <!-- COURIER -->
-      <div id="courier" style="display:none;">
-        <div class="card" style="margin-top:0;">
-          <div style="font-weight:900; font-size:16px;">기사 화면</div>
-          <div class="sub">기사 등록/로그인 → 집화</div>
-          <div class="actions">
-            <button class="btn ghost" data-home>기본 화면</button>
-          </div>
-        </div>
-
-        <!-- Courier auth -->
-        <div class="card" id="courierAuth">
-          <div style="font-weight:900; font-size:15px;">기사 로그인</div>
-          <div class="sub">기사 등록 기능 + 코드로 로그인</div>
-          <div style="height:12px;"></div>
-
-          <div class="row">
-            <div>
-              <label>기사명(등록 시 필요)</label>
-              <input id="c_name" placeholder="예: 김기사" />
-            </div>
-            <div>
-              <label>전화번호(등록 시 필요)</label>
-              <input id="c_phone" placeholder="예: 010-9999-8888" />
-            </div>
-            <div style="grid-column:1/-1">
-              <label>기사코드(로그인/등록)</label>
-              <input id="c_code" class="mono" placeholder="예: COURIER-1234" />
-            </div>
-          </div>
-
-          <div class="actions">
-            <button class="btn" id="c_register">기사등록</button>
-            <button class="btn primary" id="c_login">로그인(코드만)</button>
-          </div>
-
-          <div class="card" id="c_authResult" style="display:none;"></div>
-        </div>
-
-        <!-- Courier dashboard -->
-        <div class="card" id="courierDash" style="display:none;">
-          <div style="display:flex; justify-content:space-between; gap:10px; align-items:center;">
-            <div>
-              <div style="font-weight:900; font-size:15px;">집화 대상</div>
-              <div class="sub" id="c_who">—</div>
-            </div>
-            <span class="tag">FINAL만 표시</span>
-          </div>
-
-          <div class="actions">
-            <button class="btn" id="c_logout">로그아웃</button>
-            <button class="btn" id="c_refresh">목록 새로고침</button>
-          </div>
-        </div>
-
-        <div class="card" id="courierListCard" style="display:none;">
-          <div style="font-weight:900; font-size:14px;">최종접수 목록(FINAL)</div>
-          <div class="sub">클릭하면 집화 처리</div>
-          <div class="list" id="c_list"></div>
-        </div>
-      </div>
-    </div>
-  </div>
-
+<div class="actions">
+<button class="btn" id="s_logout">로그아웃</button>
+<button class="btn" id="s_refresh">목록 새로고침</button>
+</div>
+</div>
+<div class="card" id="storeListCard" style="display:none;">
+<div style="font-weight:900; font-size:14px;">접수대기(운송장 발급됨) 목록</div>
+<div class="sub">상태: WAYBILL_ISSUED (점포 접수 전)</div>
+<div class="list" id="s_list"></div>
+</div>
+</div>
+<!-- COURIER -->
+<div id="courier" style="display:none;">
+<div class="card" style="margin-top:0;">
+<div style="font-weight:900; font-size:16px;">기사 화면</div>
+<div class="sub">기사 등록/로그인 → 집화</div>
+<div class="actions">
+<button class="btn ghost" data-home="">기본 화면</button>
+</div>
+</div>
+<!-- Courier auth -->
+<div class="card" id="courierAuth">
+<div style="font-weight:900; font-size:15px;">기사 로그인</div>
+<div class="sub">기사 등록 기능 + 코드로 로그인</div>
+<div style="height:12px;"></div>
+<div class="row">
+<div>
+<label>기사명(등록 시 필요)</label>
+<input id="c_name" placeholder="예: 김기사"/>
+</div>
+<div>
+<label>전화번호(등록 시 필요)</label>
+<input id="c_phone" placeholder="예: 010-9999-8888"/>
+</div>
+<div style="grid-column:1/-1">
+<label>기사코드(로그인/등록)</label>
+<input class="mono" id="c_code" placeholder="예: COURIER-1234"/>
+</div>
+</div>
+<div class="actions">
+<button class="btn" id="c_register">기사등록</button>
+<button class="btn primary" id="c_login">로그인(코드만)</button>
+</div>
+<div class="card" id="c_authResult" style="display:none;"></div>
+</div>
+<!-- Courier dashboard -->
+<div class="card" id="courierDash" style="display:none;">
+<div style="display:flex; justify-content:space-between; gap:10px; align-items:center;">
+<div>
+<div style="font-weight:900; font-size:15px;">집화 대상</div>
+<div class="sub" id="c_who">—</div>
+</div>
+<span class="tag">FINAL만 표시</span>
+</div>
+<div class="actions">
+<button class="btn" id="c_logout">로그아웃</button>
+<button class="btn" id="c_refresh">목록 새로고침</button>
+</div>
+</div>
+<div class="card" id="courierListCard" style="display:none;">
+<div style="font-weight:900; font-size:14px;">최종접수 목록(FINAL)</div>
+<div class="sub">클릭하면 집화 처리</div>
+<div class="list" id="c_list"></div>
+</div>
+</div>
+</div>
+</div>
 <script>
   const $ = (id) => document.getElementById(id);
 
@@ -564,15 +525,24 @@
   }
   document.querySelectorAll("[data-home]").forEach(b => b.onclick = () => { window.location.href = "./index.html"; });
 
-  $("goCustomer").onclick = () => { window.location.href = "./customer.html"; };
+  $("goCustomer").onclick = () => { show("customer"); setCustTab("reserve"); };
   $("goKiosk").onclick = () => { window.location.href = "./kiosk.html"; };
   $("goStore").onclick = () => { window.location.href = "./store.html"; };
   $("goCourier").onclick = () => { window.location.href = "./LOGISTICS.html"; };
   // ---------- HOME: extra buttons ----------
   const trHome = $("goTracking");
-  if(trHome) trHome.onclick = () => { window.location.href = "./tracking.html"; };
+  if(trHome) trHome.onclick = () => { show("customer"); setCustTab("track"); };
   const wsHome = $("goWorkstatus");
   if(wsHome) wsHome.onclick = () => { window.location.href = "./Workstatus.html"; };
+  const cuHome = $("goCustoms");
+  if(cuHome) cuHome.onclick = () => { window.location.href = "./customsstatus.html"; };
+  const trBig = $("goTrackBig");
+  if(trBig) trBig.onclick = () => { show("customer"); setCustTab("track"); };
+  const wsBig = $("goWorkBig");
+  if(wsBig) wsBig.onclick = () => { window.location.href = "./Workstatus.html"; };
+  const cuBig = $("goCustomsBig");
+  if(cuBig) cuBig.onclick = () => { window.location.href = "./customsstatus.html"; };
+
 
 
   // ---------- CUSTOMER: tabs ----------
@@ -997,7 +967,7 @@ ${detailText(rec)}
   let __start = "home";
   if(__page === "store.html") __start = "store";
   else if(__page === "logistics.html") __start = "courier";
-  else if(__page === "customer.html") __start = "customer";
+  else if(__page === "customer.html") __start = "home"; // legacy: customer is inside index
 
   show(__start);
   // hydrate sessions only on dedicated pages
