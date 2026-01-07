@@ -307,7 +307,7 @@
       </div>
     </div>
 
-    <div class="ver">v5.6-ui-restore (2026-01-08)</div>
+    <div class="ver">v5.6.1-ui-restore (2026-01-08)</div>
   </div>
 
   <script>
@@ -549,11 +549,7 @@
       }
     }
 
-    showErr("조회 결과가 없어.
-- HBL이 맞는지 확인
-- 해당 건이 아직 유니패스에 조회되지 않는 건일 수 있음
-
-마지막 시도: " + lastMsg);
+    showErr(`조회 결과가 없어.\n- HBL이 맞는지 확인\n- 해당 건이 아직 유니패스에 조회되지 않는 건일 수 있음\n\n마지막 시도: ${lastMsg}`);
   }
 
   $("btn").addEventListener("click", query);
