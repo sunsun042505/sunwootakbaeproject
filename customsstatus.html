@@ -1,476 +1,568 @@
 <!doctype html>
 <html lang="ko">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>선우택배 · 통관 진행 조회</title>
-<style>
-  :root{
-    --bg:#0b1220;
-    --card:rgba(255,255,255,.06);
-    --card2:rgba(255,255,255,.04);
-    --border:rgba(255,255,255,.10);
-    --text:#eaf0ff;
-    --muted:rgba(234,240,255,.72);
-    --muted2:rgba(234,240,255,.55);
-    --bad:#ff5d5d;
-    --ok:#54d69a;
-    --shadow:0 12px 36px rgba(0,0,0,.35);
-    --radius:18px;
-  }
-  *{box-sizing:border-box}
-  body{
-    margin:0;
-    font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Apple SD Gothic Neo","Noto Sans KR", Arial, sans-serif;
-    background: radial-gradient(1200px 600px at 15% 10%, rgba(90,145,255,.18), transparent 60%),
-                radial-gradient(900px 500px at 80% 20%, rgba(84,214,154,.14), transparent 60%),
-                var(--bg);
-    color:var(--text);
-    min-height:100vh;
-  }
-  .wrap{max-width:1040px;margin:0 auto;padding:26px 16px 48px}
-  .topbar{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin-bottom:14px}
-  .title{font-size:22px;font-weight:900;letter-spacing:-.02em}
-  .sub{color:var(--muted);font-size:13px}
-  .ver{color:var(--muted2);font-size:12px;border:1px solid var(--border);padding:6px 10px;border-radius:999px;background:rgba(255,255,255,.03)}
-  .panel{background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.035));
-          border:1px solid var(--border); border-radius:var(--radius); padding:16px; box-shadow:var(--shadow)}
-  .row{display:grid;grid-template-columns:1.2fr .55fr;gap:10px;align-items:end}
-  label{display:block;color:var(--muted);font-size:12px;margin:0 0 6px 2px}
-  input{
-    width:100%; padding:13px 14px; border-radius:14px;
-    background:rgba(0,0,0,.24); border:1px solid rgba(255,255,255,.14);
-    color:var(--text); outline:none; font-size:15px;
-  }
-  input:focus{border-color:rgba(90,145,255,.55); box-shadow:0 0 0 4px rgba(90,145,255,.14)}
-  button{
-    width:100%; padding:13px 14px; border-radius:14px; border:1px solid rgba(255,255,255,.14);
-    background:linear-gradient(180deg, rgba(90,145,255,.95), rgba(70,120,255,.86));
-    color:white; font-weight:800; font-size:15px; cursor:pointer;
-    box-shadow:0 16px 30px rgba(70,120,255,.22);
-  }
-  button:disabled{opacity:.6; cursor:not-allowed}
-  .hint{margin-top:10px;color:var(--muted2);font-size:12px;line-height:1.45}
-  .statusbar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:12px}
-  .badge{display:inline-flex;align-items:center;gap:8px;padding:8px 10px;border-radius:999px;
-          border:1px solid var(--border); background:rgba(255,255,255,.03); color:var(--muted)}
-  .dot{width:10px;height:10px;border-radius:999px;background:rgba(255,255,255,.35)}
-  .dot.ok{background:var(--ok)}
-  .dot.bad{background:var(--bad)}
-  .last{color:var(--muted2);font-size:12px}
-  .result{margin-top:14px}
-  .cards{display:grid;grid-template-columns:repeat(3, minmax(0,1fr));gap:10px;margin-top:12px}
-  .kv{background:var(--card2);border:1px solid var(--border);border-radius:16px;padding:12px 12px}
-  .k{color:var(--muted2);font-size:12px;margin-bottom:6px}
-  .v{font-weight:900;font-size:15px;line-height:1.25;word-break:break-word}
-  .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
-  .chip{border:1px solid var(--border);background:rgba(255,255,255,.03);
-        color:var(--muted);border-radius:999px;padding:7px 10px;font-size:12px}
-  .tableWrap{margin-top:12px;border:1px solid var(--border);border-radius:18px;overflow:hidden;background:rgba(255,255,255,.03)}
-  table{width:100%;border-collapse:collapse}
-  thead th{text-align:left;font-size:12px;color:var(--muted2);padding:12px 12px;background:rgba(0,0,0,.18);border-bottom:1px solid var(--border)}
-  tbody td{padding:12px 12px;border-bottom:1px solid rgba(255,255,255,.08);vertical-align:top;font-size:14px}
-  tbody tr:hover{background:rgba(255,255,255,.03)}
-  .stage{font-weight:900}
-  .mono{font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; font-size:12.5px}
-  .muted{color:var(--muted2)}
-  .small{font-size:12px;color:var(--muted2);margin-top:4px;line-height:1.25}
-  .error{background:rgba(255,93,93,.10);border:1px solid rgba(255,93,93,.30);color:#ffd7d7;
-          border-radius:16px;padding:12px 12px;line-height:1.35}
-  .raw{margin-top:12px;border:1px solid var(--border);border-radius:18px;overflow:hidden;background:rgba(0,0,0,.18)}
-  .rawHead{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.10)}
-  .rawHead b{font-size:13px}
-  .rawHead button{width:auto;padding:8px 10px;border-radius:12px;background:rgba(255,255,255,.06);box-shadow:none}
-  pre{margin:0;padding:12px 12px;max-height:300px;overflow:auto;color:rgba(234,240,255,.84);font-size:12px}
-  @media (max-width: 860px){
-    .row{grid-template-columns:1fr}
-    .cards{grid-template-columns:1fr}
-  }
-</style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>선우택배 · 통관 진행 조회</title>
+  <style>
+    :root{
+      --bg0:#0a1020;
+      --bg1:#0b1630;
+      --card:rgba(255,255,255,.06);
+      --card2:rgba(255,255,255,.08);
+      --line:rgba(255,255,255,.10);
+      --text:#e9eefc;
+      --muted:rgba(233,238,252,.70);
+      --muted2:rgba(233,238,252,.55);
+      --ok:#37d67a;
+      --warn:#ffcc66;
+      --bad:#ff6b6b;
+      --shadow:0 18px 60px rgba(0,0,0,.45);
+      --r:18px;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", sans-serif;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:var(--sans);
+      color:var(--text);
+      background:
+        radial-gradient(1000px 600px at 20% 10%, rgba(92,124,250,.25), transparent 60%),
+        radial-gradient(1000px 700px at 80% 10%, rgba(55,214,122,.18), transparent 55%),
+        radial-gradient(900px 700px at 50% 90%, rgba(255,204,102,.10), transparent 60%),
+        linear-gradient(180deg, var(--bg0), var(--bg1));
+      min-height:100vh;
+    }
+    .wrap{max-width:1100px; margin:0 auto; padding:26px 18px 40px;}
+    .top{
+      display:flex; align-items:flex-end; justify-content:space-between; gap:14px; flex-wrap:wrap;
+      margin-bottom:14px;
+    }
+    .title{
+      display:flex; flex-direction:column; gap:6px;
+    }
+    .title h1{margin:0; font-size:22px; letter-spacing:-.2px;}
+    .title .sub{color:var(--muted); font-size:13px;}
+    .chip{
+      display:inline-flex; align-items:center; gap:8px;
+      padding:6px 10px; border-radius:999px; border:1px solid var(--line);
+      background:rgba(255,255,255,.04); color:var(--muted);
+      font-size:12px;
+    }
+    .panel{
+      background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.04));
+      border:1px solid var(--line);
+      border-radius:22px;
+      box-shadow:var(--shadow);
+      overflow:hidden;
+    }
+    .search{
+      padding:16px;
+      display:flex; gap:10px; align-items:stretch; flex-wrap:wrap;
+    }
+    .field{
+      flex:1 1 360px;
+      background:rgba(0,0,0,.25);
+      border:1px solid rgba(255,255,255,.12);
+      border-radius:16px;
+      padding:10px 12px;
+      display:flex; flex-direction:column; gap:6px;
+      min-width:260px;
+    }
+    .field label{font-size:12px; color:var(--muted2);}
+    .field input{
+      width:100%;
+      background:transparent;
+      border:0;
+      outline:none;
+      color:var(--text);
+      font-size:18px;
+      font-family:var(--mono);
+      letter-spacing:.2px;
+    }
+    .btn{
+      border:0;
+      border-radius:16px;
+      padding:12px 16px;
+      cursor:pointer;
+      font-weight:800;
+      color:#061026;
+      background:linear-gradient(135deg, rgba(92,124,250,.98), rgba(55,214,122,.85));
+      box-shadow:0 14px 40px rgba(92,124,250,.20);
+      min-width:120px;
+    }
+    .btn:active{transform:translateY(1px)}
+    .hint{
+      padding:0 16px 14px;
+      color:var(--muted);
+      font-size:12px;
+      display:flex; gap:10px; flex-wrap:wrap; align-items:center;
+    }
+    .hint b{color:var(--text)}
+    .grid{
+      display:grid;
+      grid-template-columns: repeat(3, minmax(0,1fr));
+      gap:12px;
+      padding:14px 16px 16px;
+      border-top:1px solid var(--line);
+    }
+    @media (max-width: 920px){
+      .grid{grid-template-columns:repeat(2, minmax(0,1fr));}
+    }
+    @media (max-width: 560px){
+      .grid{grid-template-columns:repeat(1, minmax(0,1fr));}
+    }
+    .card{
+      background:rgba(0,0,0,.22);
+      border:1px solid rgba(255,255,255,.10);
+      border-radius:18px;
+      padding:12px 12px 11px;
+      min-height:66px;
+    }
+    .k{font-size:12px; color:var(--muted2); margin-bottom:6px;}
+    .v{font-size:15px; font-weight:800; letter-spacing:-.1px;}
+    .v.mono{font-family:var(--mono); font-weight:900;}
+    .v.small{font-size:13px; font-weight:700; color:var(--text);}
+    .status-ok{color:var(--ok)}
+    .status-warn{color:var(--warn)}
+    .status-bad{color:var(--bad)}
+    .section{
+      margin-top:12px;
+      padding:0 16px 16px;
+    }
+    .sectionHead{
+      display:flex; align-items:center; justify-content:space-between;
+      gap:10px; flex-wrap:wrap;
+      padding:10px 0;
+      color:var(--muted);
+      font-size:12px;
+    }
+    table{
+      width:100%;
+      border-collapse:separate;
+      border-spacing:0;
+      overflow:hidden;
+      border-radius:18px;
+      border:1px solid var(--line);
+      background:rgba(0,0,0,.22);
+    }
+    thead th{
+      text-align:left;
+      font-size:12px;
+      color:var(--muted);
+      padding:12px 12px;
+      border-bottom:1px solid var(--line);
+      background:rgba(255,255,255,.03);
+      position:sticky; top:0;
+    }
+    tbody td{
+      padding:12px 12px;
+      border-bottom:1px solid rgba(255,255,255,.06);
+      vertical-align:top;
+      font-size:13px;
+      color:rgba(233,238,252,.92);
+    }
+    tbody tr:last-child td{border-bottom:0}
+    .col-stage{width:26%}
+    .col-time{width:18%; white-space:nowrap}
+    .col-place{width:36%}
+    .col-remark{width:20%}
+    .muted{color:var(--muted)}
+    .mono{font-family:var(--mono)}
+    .pill{
+      display:inline-flex; align-items:center; gap:6px;
+      padding:6px 10px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.14);
+      background:rgba(255,255,255,.04);
+      font-size:12px;
+      color:var(--muted);
+    }
+    .xmlwrap{
+      margin-top:12px;
+      border-top:1px solid var(--line);
+      padding:14px 16px 16px;
+    }
+    .xmlhead{
+      display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;
+      margin-bottom:10px;
+    }
+    .toggle{
+      border:1px solid rgba(255,255,255,.14);
+      background:rgba(255,255,255,.04);
+      color:var(--text);
+      padding:8px 12px;
+      border-radius:14px;
+      cursor:pointer;
+      font-weight:800;
+      font-size:12px;
+    }
+    pre{
+      margin:0;
+      padding:12px;
+      border-radius:16px;
+      border:1px solid rgba(255,255,255,.10);
+      background:rgba(0,0,0,.35);
+      color:rgba(233,238,252,.90);
+      font-size:12px;
+      line-height:1.5;
+      overflow:auto;
+      display:none;
+    }
+    .err{
+      margin:12px 16px 0;
+      padding:12px;
+      border-radius:16px;
+      border:1px solid rgba(255,107,107,.35);
+      background:rgba(255,107,107,.10);
+      color:rgba(255,220,220,.95);
+      display:none;
+      white-space:pre-wrap;
+    }
+    .foot{
+      margin-top:14px;
+      color:var(--muted2);
+      font-size:12px;
+      padding:0 4px;
+    }
+    .ver{
+      position:fixed;
+      right:14px; bottom:14px;
+      padding:8px 10px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.10);
+      background:rgba(0,0,0,.28);
+      color:rgba(233,238,252,.60);
+      font-size:11px;
+    }
+  </style>
 </head>
 <body>
-<div class="wrap">
-  <div class="topbar">
-    <div>
-      <div class="title">통관 진행 조회</div>
-      <div class="sub">HBL(운송장번호)만 입력하면 연도는 자동으로 찾아서 조회함 · 세관/처리단계는 유니패스 표랑 최대한 동일하게 표시</div>
-    </div>
-    <div class="ver">v5.4-merge-stage (2026-01-08)</div>
-  </div>
-
-  <div class="panel">
-    <div class="row">
-      <div>
-        <label>HBL / 운송장번호</label>
-        <input id="hbl" placeholder="예) 300046199451" inputmode="numeric" />
+  <div class="wrap">
+    <div class="top">
+      <div class="title">
+        <h1>통관 진행 조회</h1>
+        <div class="sub">HBL(운송장번호)만 입력하면, 시스템이 <b>연도(blYy)</b>를 자동으로 찾아 조회해요.</div>
       </div>
-      <div>
-        <label>&nbsp;</label>
-        <button id="btn">조회</button>
-      </div>
+      <div class="chip">선우택배 · customsstatus.html</div>
     </div>
 
-    <div class="hint">
-      • 이 화면은 <b>통관조회 화면에서만</b> 운송장번호 전체가 보이게 되어있음.<br/>
-      • 결과가 안 나오면 배송번호가 HBL이 아닌 케이스(다른 번호체계)일 수도 있음.
-    </div>
-
-    <div class="statusbar">
-      <div class="badge"><span class="dot" id="dot"></span><span id="badge">대기</span></div>
-      <div class="last" id="last">-</div>
-    </div>
-  </div>
-
-  <div class="result" id="result"></div>
-</div>
-
-<script>
-  const $ = (id) => document.getElementById(id);
-
-  const nowKST = () => new Date().toLocaleString("ko-KR", { timeZone: "Asia/Seoul" });
-
-  function setState(kind, text){
-    $("badge").textContent = text;
-    $("dot").className = "dot" + (kind === "ok" ? " ok" : kind === "bad" ? " bad" : "");
-  }
-
-  function escapeHtml(s){
-    return (s||"").toString().replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;");
-  }
-
-  function xmlText(node, tag){
-    if (!node) return "";
-    const el = node.getElementsByTagName(tag)[0];
-    if (!el || !el.textContent) return "";
-    return el.textContent.trim();
-  }
-
-  function pick(node, tags){
-    for (const t of tags){
-      const v = xmlText(node, t);
-      if (v) return v;
-    }
-    return "";
-  }
-
-  function anyTagText(doc, tag){
-    const el = doc.getElementsByTagName(tag)[0];
-    return (el && el.textContent) ? el.textContent.trim() : "";
-  }
-
-  function fmtDate8(s){
-    s = (s||"").trim();
-    if (/^\d{8}$/.test(s)) return `${s.slice(0,4)}-${s.slice(4,6)}-${s.slice(6,8)}`;
-    return s;
-  }
-
-  function fmtDttm(s){
-    s = (s||"").trim();
-    // 20251213231557
-    if (/^\d{14}$/.test(s)) {
-      return `${s.slice(0,4)}-${s.slice(4,6)}-${s.slice(6,8)} ${s.slice(8,10)}:${s.slice(10,12)}:${s.slice(12,14)}`;
-    }
-    // already like 2025-12-13 23:15:57
-    return s;
-  }
-
-  function looksLikeCode(s){
-    s = (s||"").trim();
-    if (!s) return false;
-    if (/^\d{8}(\/[A-Z0-9]+)?$/.test(s)) return true; // 세관코드 형태
-    if (/^[A-Z0-9]{8,}$/.test(s)) return true; // 신고번호/근거번호 등
-    return false;
-  }
-
-  function findFirstMatchingText(node, regex){
-    if (!node) return "";
-    const all = node.getElementsByTagName("*");
-    for (const el of all){
-      const t = (el.textContent||"").trim();
-      if (t && regex.test(t)) return t;
-    }
-    return "";
-  }
-
-  function cleanStage(stage, remark){
-    stage = (stage||"").trim();
-    remark = (remark||"").trim();
-
-    // 부가사항 문구는 처리단계 칸에 "부가사항"으로만 표시하고 내용은 비고로.
-    if (!stage && remark.startsWith("[부가사항]")) return "부가사항";
-
-    // stage에 코드/시간/번호가 들어오면 버림 (절대 단계로 올리지 않음)
-    if (/^\d{12,14}$/.test(stage)) return "";
-    if (looksLikeCode(stage)) return "";
-
-    // stage가 너무 길고 안내문 성격이면 비고로 보내고 단계는 "부가사항"
-    if (stage.startsWith("[부가사항]")) return "부가사항";
-
-    return stage;
-  }
-
-  function parseUnipass(xmlDoc, inputNo){
-    const root = xmlDoc;
-
-    const tCnt = pick(root, ["tCnt"]);
-    const ntceInfo = pick(root, ["ntceInfo"]);
-
-    const vo = root.getElementsByTagName("cargCsclPrgsInfoQryVo")[0] || root;
-
-    const status = pick(vo, ["csclPrgsStts", "prgsStts", "prgsStCd", "csclPrgsSttsNm"]);
-    const prcsDttm = fmtDttm(pick(vo, ["prcsDttm", "prcsDt", "dttm"]));
-    const prnm = pick(vo, ["prnm", "gdsNm", "prdtNm"]);
-    const etprDt = fmtDate8(pick(vo, ["etprDt", "etprDt8", "etprYmd"]));
-
-    // ✅ 고정 태그 (사용자가 알려준 정답)
-    const expressNm = anyTagText(root, "frwrEntsConm"); // 특송업체
-    const carrierNm = anyTagText(root, "shcoFlco") || anyTagText(root, "shcoFlcoNm"); // 선사/항공사
-
-    // 세관(명/코드) — 이름이 없으면 코드라도 표시
-    const customsNm = pick(vo, ["cstmNm", "csclCstmNm", "dclrCstmNm"]);
-    let customsCd = pick(vo, ["cstmCd", "csclCstmCd", "dclrCstmCd", "cstm"]);
-    if (!/^\d{8}/.test(customsCd)) customsCd = "";
-
-    const dtlsAll = Array.from(root.getElementsByTagName("cargCsclPrgsInfoDtlQryVo"));
-
-    // 세관코드는 dtl에만 오는 경우가 많아서, 최빈값으로 하나 뽑아서 카드에 표시
-    const codeCounts = {};
-    for (const n of dtlsAll){
-      let c = pick(n, ["cstmCd","csclCstmCd","dclrCstmCd","cstm","shedSgn"]);
-      if (!/^\d{8}(\/[A-Z0-9]+)?$/.test(c)) c = findFirstMatchingText(n, /^\d{8}(\/[A-Z0-9]+)?$/);
-      if (c) codeCounts[c] = (codeCounts[c]||0) + 1;
-    }
-    if (!customsCd) {
-      let best = "";
-      let bestCnt = 0;
-      for (const k in codeCounts){
-        if (codeCounts[k] > bestCnt) { bestCnt = codeCounts[k]; best = k; }
-      }
-      customsCd = best;
-    }
-
-    const customsDisplay = customsNm ? (customsCd ? `${customsNm} (${customsCd})` : customsNm) : (customsCd ? customsCd : "");
-
-    const steps = dtlsAll.map((n, idx) => {
-      const remark = pick(n, ["rlbrCn","bfhnGdncCn","ntceInfo"]);
-      const rawStage = pick(n, ["prcsStts","prcsSttsNm","cargTrcnRelaBsopTpcdNm","csclPrgsStts","csclPrgsSttsNm"]);
-      const stage = cleanStage(rawStage, remark) || "";
-
-      const time = fmtDttm(pick(n, ["prcsDttm","prcsDt","rlbrDttm","dttm"]));
-
-      // 세관코드(04002001 같은거) + 장치장명(지정장치장...) 같이 보여주기
-      let cstm = pick(n, ["cstmCd","csclCstmCd","dclrCstmCd","cstm","shedSgn"]);
-      if (!/^\d{8}(\/[A-Z0-9]+)?$/.test(cstm)) cstm = findFirstMatchingText(n, /^\d{8}(\/[A-Z0-9]+)?$/);
-
-      const yard = pick(n, ["shedNm","shedSgnNm","shedNm1","shed","placeNm","cstmNm"]);
-
-      // 완전 빈 줄은 버림
-      if (!stage && !time && !cstm && !yard && !remark) return null;
-
-      return {
-        stage: stage || "-", 
-        time: time || "-", 
-        cstm: cstm || "-", 
-        yard: yard || "", 
-        remark: (remark && remark.startsWith("[부가사항]")) ? remark : (remark || "-")
-      };
-    }).filter(Boolean);
-
-    // 표는 "최근 처리"가 위로 오게(시간이 '-'인 건은 뒤로)
-    
-    // ✅ 유니패스 표처럼 "처리단계 줄"과 "상세(시간/장치장) 줄"이 따로 내려오는 케이스를 병합
-    const merged = [];
-    for (const cur of steps){
-      const prev = merged[merged.length - 1];
-
-      // 1) 바로 직전이 단계만 있고(time='-'), 현재가 시간/장소가 있는 상세줄이면 → 한 줄로 합치기
-      if (prev && prev.time === "-" && cur.time !== "-" && prev.stage !== "-" && cur.stage === "-"){
-        cur.stage = prev.stage;
-
-        if ((cur.cstm === "-" || !cur.cstm) && prev.cstm && prev.cstm !== "-") cur.cstm = prev.cstm;
-        if ((!cur.yard || cur.yard === "-") && prev.yard) cur.yard = prev.yard;
-        if ((cur.remark === "-" || !cur.remark) && prev.remark && prev.remark !== "-") cur.remark = prev.remark;
-
-        merged.pop();
-        merged.push(cur);
-        continue;
-      }
-
-      // 2) 직전이 단계줄이고 현재가 비고만 있는 줄이면(예: 반출입내용) → 비고도 합치기
-      if (prev && prev.time === "-" && cur.time !== "-" && prev.stage !== "-" && cur.stage === "-" && cur.remark !== "-"){
-        cur.stage = prev.stage;
-        if ((cur.cstm === "-" || !cur.cstm) && prev.cstm && prev.cstm !== "-") cur.cstm = prev.cstm;
-        merged.pop();
-        merged.push(cur);
-        continue;
-      }
-
-      merged.push(cur);
-    }
-
-    const stepsMerged = merged;
-
-return {
-      tCnt, ntceInfo,
-      hbl: inputNo,
-      status, prcsDttm,
-      expressNm, carrierNm,
-      customs: customsDisplay || "-",
-      prnm, etprDt,
-      steps: stepsMerged
-    };
-  }
-
-  function render(d, xmlText, yearUsed){
-    const cards = `
-      <div class="chips">
-        <div class="chip">HBL: <b style="color:var(--text)">${escapeHtml(d.hbl)}</b></div>
-        <div class="chip">상태: <b style="color:var(--text)">${escapeHtml(d.status || "-")}</b></div>
-        <div class="chip">처리: <b style="color:var(--text)">${escapeHtml(d.prcsDttm || "-")}</b></div>
-        <div class="chip">조회연도: <b style="color:var(--text)">${escapeHtml(yearUsed || "-")}</b></div>
+    <div class="panel">
+      <div class="search">
+        <div class="field">
+          <label>운송장번호(HBL) <span class="muted">(예: 300046199451)</span></label>
+          <input id="hbl" inputmode="numeric" autocomplete="off" placeholder="HBL 운송장번호" />
+        </div>
+        <button class="btn" id="btn">조회</button>
       </div>
 
-      <div class="cards">
-        <div class="kv"><div class="k">특송업체</div><div class="v">${escapeHtml(d.expressNm || "-")}</div></div>
-        <div class="kv"><div class="k">선사/항공사</div><div class="v">${escapeHtml(d.carrierNm || "-")}</div></div>
-        <div class="kv"><div class="k">세관</div><div class="v">${escapeHtml(d.customs || "-")}</div></div>
-
-        <div class="kv"><div class="k">품명</div><div class="v">${escapeHtml(d.prnm || "-")}</div></div>
-        <div class="kv"><div class="k">입항일</div><div class="v">${escapeHtml(d.etprDt || "-")}</div></div>
-        <div class="kv"><div class="k">이력 건수</div><div class="v">${d.steps.length}</div></div>
+      <div class="hint">
+        <span class="pill">표시 정책</span>
+        <span>통관조회 화면에서는 운송장번호가 <b>표시</b>됩니다.</span>
+        <span class="muted">※ 다른 화면(키오스크/점포/기사/작업현황)은 기존대로 숨김 유지</span>
       </div>
-    `;
 
-    const rows = d.steps.map(s => `
-      <tr>
-        <td class="stage">${escapeHtml(s.stage)}</td>
-        <td class="mono">${escapeHtml(s.time)}</td>
-        <td>
-          <div class="mono" style="font-weight:900">${escapeHtml(s.cstm)}</div>
-          ${s.yard ? `<div class="small">${escapeHtml(s.yard)}</div>` : ""}
-        </td>
-        <td>${escapeHtml(s.remark)}</td>
-      </tr>
-    `).join("");
+      <div class="err" id="err"></div>
 
-    const table = `
-      <div class="tableWrap">
+      <div class="grid" id="cards" style="display:none">
+        <div class="card"><div class="k">특송업체</div><div class="v" id="c_express">-</div></div>
+        <div class="card"><div class="k">선사/항공사</div><div class="v" id="c_carrier">-</div></div>
+        <div class="card"><div class="k">세관</div><div class="v" id="c_customs">-</div></div>
+
+        <div class="card"><div class="k">상태</div><div class="v" id="c_status">-</div></div>
+        <div class="card"><div class="k">처리(최신)</div><div class="v small" id="c_last">-</div></div>
+        <div class="card"><div class="k">이력 건수</div><div class="v mono" id="c_cnt">-</div></div>
+
+        <div class="card"><div class="k">품명</div><div class="v" id="c_item">-</div></div>
+        <div class="card"><div class="k">입항일</div><div class="v small" id="c_arrive">-</div></div>
+        <div class="card"><div class="k">HBL</div><div class="v mono" id="c_hbl">-</div></div>
+      </div>
+
+      <div class="section" id="timelineSec" style="display:none">
+        <div class="sectionHead">
+          <div>처리단계는 <b>“처리단계 텍스트”만 표시</b> (신고번호/코드/시간은 단계로 올리지 않음)</div>
+          <div class="muted" id="usedYear"></div>
+        </div>
         <table>
           <thead>
             <tr>
-              <th style="width:28%">처리단계</th>
-              <th style="width:22%">처리일시</th>
-              <th style="width:28%">세관 / 장치장</th>
-              <th style="width:22%">반출입(처리)내용</th>
+              <th class="col-stage">처리단계</th>
+              <th class="col-time">처리일시</th>
+              <th class="col-place">장치장/장치위치</th>
+              <th class="col-remark">반출입(처리)내용</th>
             </tr>
           </thead>
-          <tbody>${rows || `<tr><td colspan="4" class="muted">이력 없음</td></tr>`}</tbody>
+          <tbody id="tbody"></tbody>
         </table>
       </div>
-      <div class="hint" style="margin-top:10px">
-        • 처리단계는 <b>신고번호/코드/시간</b> 같은 값은 절대 올리지 않게 차단해놨음.<br/>
-        • 만약 특정 행에서 처리단계가 계속 <b>-</b>로 나오면, 그 케이스는 XML에서 처리단계 태그가 다른 이름으로 오는 거라서 태그명만 추가하면 100% 맞출 수 있음.
-      </div>
-    `;
 
-    const raw = `
-      <div class="raw">
-        <div class="rawHead">
-          <b>원문(XML)</b>
-          <button id="toggleRaw" type="button">접기/펼치기</button>
+      <div class="xmlwrap">
+        <div class="xmlhead">
+          <div class="pill">원문(XML)</div>
+          <button class="toggle" id="toggleXml">접기/펼치기</button>
         </div>
-        <pre id="rawPre">${escapeHtml(xmlText)}</pre>
+        <pre id="xml"></pre>
+        <div class="foot">세관명/처리단계가 비면, 보통은 XML에 값이 없거나 “단계줄/상세줄”이 분리되어 내려오는 케이스입니다. 이 페이지는 그 둘을 자동으로 병합해서 표를 최대한 원본처럼 맞춥니다.</div>
       </div>
-    `;
+    </div>
 
-    $("result").innerHTML = cards + table + raw;
+    <div class="ver">v5.6-ui-restore (2026-01-08)</div>
+  </div>
 
-    $("toggleRaw").addEventListener("click", () => {
-      const pre = $("rawPre");
-      pre.style.display = (pre.style.display === "none") ? "block" : "none";
-    });
+  <script>
+  const $ = (id) => document.getElementById(id);
+
+  function showErr(msg){
+    const el = $("err");
+    el.style.display = "block";
+    el.textContent = msg;
+  }
+  function clearErr(){
+    const el = $("err");
+    el.style.display = "none";
+    el.textContent = "";
   }
 
-  async function callAPI(hbl, blYy){
-    const qs = new URLSearchParams({ type: "hbl", no: hbl, blYy });
-    // 1) 기존에 쓰던 함수 먼저
-    let r = await fetch(`/.netlify/functions/unipass?${qs.toString()}`);
-    if (r.status === 404) {
-      // 2) 혹시 /api 라우팅 쓰는 프로젝트면 여기로 재시도
-      r = await fetch(`/api/unipass?${qs.toString()}`);
+  function t(node, tag){
+    const el = node.getElementsByTagName(tag)[0];
+    return el ? (el.textContent || "").trim() : "";
+  }
+  function firstDocTag(doc, tag){
+    const el = doc.getElementsByTagName(tag)[0];
+    return el ? (el.textContent || "").trim() : "";
+  }
+  function clean(s){
+    return (s || "").replace(/\s+/g, " ").trim();
+  }
+  function looksLikeCode(s){
+    // AE041..., 25MUZ..., 0400... 같은 코드
+    return /^[A-Z0-9]{8,}$/.test(s) || /^[0-9]{8,}[A-Z0-9]+$/.test(s);
+  }
+  function looksLikeTimeStamp(s){
+    return /^\d{12,14}$/.test(s) || /^\d{4}-\d{2}-\d{2}/.test(s);
+  }
+  function fmtDttm(raw){
+    const r = (raw || "").replace(/[^0-9]/g,"");
+    if (r.length < 12) return clean(raw);
+    const y=r.slice(0,4), mo=r.slice(4,6), d=r.slice(6,8), hh=r.slice(8,10), mm=r.slice(10,12), ss=r.slice(12,14) || "00";
+    return `${y}-${mo}-${d} ${hh}:${mm}:${ss}`;
+  }
+
+  function pickStage(n){
+    // "처리단계"는 이 태그들에서만 가져온다 (원본 표의 처리단계 계열)
+    const cand = clean(t(n,"cargTrcnRelaBsopTpcdNm")) || clean(t(n,"prcsStts")) || "";
+    if (!cand) return "";
+    if (looksLikeTimeStamp(cand) || looksLikeCode(cand)) return "";
+    // 부가사항은 별도 표시
+    if (cand.startsWith("[부가사항]")) return "부가사항";
+    return cand;
+  }
+
+  function pickRemark(n){
+    const cand = clean(t(n,"rlbrCn")) || clean(t(n,"bfhnGdncCn")) || "";
+    // remark에 코드만 있으면 버림
+    if (cand && (looksLikeCode(cand) || looksLikeTimeStamp(cand))) return "";
+    return cand;
+  }
+
+  function pickPlace(n){
+    const nm = clean(t(n,"shedNm"));
+    return nm || clean(t(n,"shedSgn"));
+  }
+
+  function parseRows(doc){
+    const nodes = Array.from(doc.getElementsByTagName("cargCsclPrgsInfoDtlQryVo"));
+    const raw = nodes.map(n => {
+      const stage = pickStage(n);
+      const timeRaw = clean(t(n,"prcsDttm"));
+      const place = pickPlace(n);
+      const remark = pickRemark(n);
+      const dclrNo = clean(t(n,"dclrNo"));
+      const rlbrBssNo = clean(t(n,"rlbrBssNo"));
+      return {
+        stage,
+        timeRaw,
+        time: timeRaw ? fmtDttm(timeRaw) : "-",
+        place: place || "-",
+        remark: remark || "-",
+        dclrNo, rlbrBssNo
+      };
+    }).filter(r => (r.timeRaw || r.stage || (r.remark && r.remark !== "-") || (r.place && r.place !== "-")));
+
+    // 원본처럼 "단계줄/상세줄"이 분리되어 내려오면 자동 병합
+    const merged = [];
+    for (const r of raw){
+      const prev = merged[merged.length-1];
+      const sameSlot = prev && r.timeRaw && prev.timeRaw === r.timeRaw && (
+        (prev.place === r.place) || (prev.place === "-" && r.place !== "-") || (r.place === "-" && prev.place !== "-")
+      );
+
+      if (!r.stage && sameSlot){
+        // 상세줄: 이전 단계줄에 붙여넣기
+        if (prev.remark === "-" && r.remark !== "-") prev.remark = r.remark;
+        if (prev.place === "-" && r.place !== "-") prev.place = r.place;
+        continue;
+      }
+
+      // stage가 비어있지만 remark만 있는 줄이 연속으로 오면, stage가 있는 최신 줄에 붙여주고 싶지만
+      // 실제로는 여러 이벤트가 섞일 수 있어, "같은 슬롯"만 붙인다.
+      merged.push({...r});
     }
-    const text = await r.text();
-    if (!r.ok) throw new Error(text || `HTTP ${r.status}`);
-    return text;
+
+    // 그래도 stage가 "-"인 줄은 최대한 제거/정리:
+    // - remark가 부가사항이면 stage를 부가사항으로
+    // - 둘 다 "-"면 제거
+    const cleaned = [];
+    for (const r of merged){
+      let stage = r.stage || "-";
+      if (stage === "-" && r.remark && r.remark.startsWith("[부가사항]")) stage = "부가사항";
+      if (stage === "-" && (r.remark === "-" || !r.remark) && (r.place === "-" || !r.place)) continue;
+      cleaned.push({...r, stage});
+    }
+
+    return cleaned;
   }
 
-  $("btn").addEventListener("click", async () => {
-    const hbl = ($("hbl").value||"").trim();
-    $("result").innerHTML = "";
+  function fill(doc, xmlText, usedYear){
+    // root vo
+    const root = doc.getElementsByTagName("cargCsclPrgsInfoQryRtnVo")[0] || doc;
+    const vo = root.getElementsByTagName("cargCsclPrgsInfoQryVo")[0] || root;
 
+    const express = clean(t(vo,"frwrEntsConm")) || clean(firstDocTag(doc,"frwrEntsConm")) || "-";  // 특송업체
+    const carrier = clean(t(vo,"shcoFlco")) || clean(firstDocTag(doc,"shcoFlco")) || "-";        // 선사/항공사
+    const cstmNm = clean(t(vo,"cstmNm")) || clean(firstDocTag(doc,"cstmNm")) || "";
+    const cstmCd = clean(t(vo,"cstmCd")) || clean(firstDocTag(doc,"cstmCd")) || "";
+    const customs = cstmNm ? (cstmCd ? `${cstmNm} (${cstmCd})` : cstmNm) : (cstmCd ? `세관코드 ${cstmCd}` : "-");
+
+    const status = clean(t(vo,"csclPrgsStts")) || clean(firstDocTag(doc,"csclPrgsStts")) || "-";
+    const prnm = clean(t(vo,"prnm")) || clean(firstDocTag(doc,"prnm")) || "-";
+    const etprDt = clean(t(vo,"etprDt")) || clean(firstDocTag(doc,"etprDt")) || "";
+    const arrive = etprDt ? fmtDttm(etprDt).slice(0,10) : "-";
+
+    const hbl = clean(t(vo,"hblNo")) || clean(firstDocTag(doc,"hblNo")) || clean($("hbl").value) || "-";
+
+    const rows = parseRows(doc);
+    const lastTime = rows[0]?.time || "-"; // 유니패스가 보통 최신부터 내려줌
+    const cnt = rows.length ? String(rows.length) : "-";
+
+    $("c_express").textContent = express;
+    $("c_carrier").textContent = carrier;
+    $("c_customs").textContent = customs;
+    $("c_status").textContent = status;
+    $("c_last").textContent = lastTime;
+    $("c_cnt").textContent = cnt;
+    $("c_item").textContent = prnm;
+    $("c_arrive").textContent = arrive;
+    $("c_hbl").textContent = hbl;
+
+    $("cards").style.display = "grid";
+    $("timelineSec").style.display = "block";
+    $("usedYear").textContent = usedYear ? `사용 연도(blYy): ${usedYear}` : "";
+
+    const tb = $("tbody");
+    tb.innerHTML = "";
+    for (const r of rows){
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td class="col-stage">${escapeHtml(r.stage || "-")}</td>
+        <td class="col-time mono">${escapeHtml(r.time || "-")}</td>
+        <td class="col-place">${escapeHtml(r.place || "-")}</td>
+        <td class="col-remark">${escapeHtml(r.remark || "-")}</td>`;
+      tb.appendChild(tr);
+    }
+
+    // xml
+    $("xml").textContent = xmlText || "";
+  }
+
+  function escapeHtml(s){
+    return String(s)
+      .replaceAll("&","&amp;")
+      .replaceAll("<","&lt;")
+      .replaceAll(">","&gt;")
+      .replaceAll('"',"&quot;")
+      .replaceAll("'","&#039;");
+  }
+
+  async function fetchXml(qs){
+    // 1순위: /api/unipass (netlify.toml redirect 기반)
+    const urls = [
+      `/api/unipass?${qs.toString()}`,
+      `/.netlify/functions/unipass?${qs.toString()}`
+    ];
+    let lastErr = "";
+    for (const url of urls){
+      try{
+        const r = await fetch(url, { cache: "no-store" });
+        if (!r.ok){
+          lastErr = `${url} → HTTP ${r.status}`;
+          continue;
+        }
+        const txt = await r.text();
+        return { url, txt };
+      }catch(e){
+        lastErr = `${url} → ${String(e)}`;
+      }
+    }
+    throw new Error(lastErr || "fetch failed");
+  }
+
+  async function query(){
+    clearErr();
+
+    const hbl = clean($("hbl").value).replace(/\s+/g,"");
     if (!hbl){
-      setState("bad","번호를 입력해줘");
-      $("result").innerHTML = `<div class="error">운송장번호(HBL)가 비었음</div>`;
+      showErr("HBL(운송장번호)을 입력해줘.");
+      return;
+    }
+    if (!/^[0-9A-Za-z]{8,20}$/.test(hbl)){
+      showErr("HBL 형식이 이상해 보여. (숫자/영문 8~20자)");
       return;
     }
 
-    $("btn").disabled = true;
-    $("btn").textContent = "조회중…";
-    setState("", "조회 중");
+    $("cards").style.display = "none";
+    $("timelineSec").style.display = "none";
 
-    const now = new Date();
-    const y = now.getFullYear();
-    const yearsToTry = [y, y-1, y-2, y-3, y-4];
+    const nowY = new Date().getFullYear();
+    const years = [nowY, nowY-1, nowY-2, nowY-3, nowY-4];
 
-    try{
-      let lastXml = "";
-      let lastParsed = null;
-      let usedYear = "";
+    let lastMsg = "";
+    for (const y of years){
+      const qs = new URLSearchParams();
+      qs.set("type", "hblNo");
+      qs.set("hblNo", hbl);
+      qs.set("blYy", String(y));
 
-      for (const yr of yearsToTry){
-        const xmlText = await callAPI(hbl, String(yr));
-        lastXml = xmlText;
-        const xmlDoc = new DOMParser().parseFromString(xmlText, "text/xml");
-        const d = parseUnipass(xmlDoc, hbl);
-        lastParsed = d;
-
-        if (d.ntceInfo){
-          // 안내/에러면 바로 표시(연도 바꿔도 의미 없는 경우가 많음)
-          usedYear = String(yr);
-          setState("bad", "안내/에러");
-          $("last").textContent = "마지막 조회: " + nowKST();
-          $("result").innerHTML = `<div class="error">${escapeHtml(d.ntceInfo)}</div>`;
+      try{
+        const { txt } = await fetchXml(qs);
+        // tCnt 체크
+        const doc = new DOMParser().parseFromString(txt, "text/xml");
+        const tCnt = clean(firstDocTag(doc, "tCnt"));
+        if (tCnt && tCnt !== "0"){
+          fill(doc, txt, String(y));
           return;
         }
-
-        if (d.tCnt && d.tCnt !== "0"){
-          usedYear = String(yr);
-          setState("ok","조회 성공");
-          $("last").textContent = "마지막 조회: " + nowKST();
-          render(d, xmlText, usedYear);
-          return;
-        }
+        lastMsg = `연도 ${y} 조회 결과: tCnt=${tCnt || "?"}`;
+      }catch(e){
+        lastMsg = String(e);
       }
-
-      // 여기까지 왔으면 전부 0건
-      setState("bad","결과 없음");
-      $("last").textContent = "마지막 조회: " + nowKST();
-      $("result").innerHTML = `<div class="error">조회 결과가 0건이야. (연도 자동시도: ${yearsToTry.join(", ")})<br/>HBL이 맞는지/번호 오타 없는지 확인 ㄱㄱ</div>` +
-        `<div class="raw" style="margin-top:12px"><div class="rawHead"><b>마지막 응답(XML)</b><button id="toggleRaw" type="button">접기/펼치기</button></div><pre id="rawPre">${escapeHtml(lastXml)}</pre></div>`;
-      const btn = document.getElementById("toggleRaw");
-      if (btn) btn.addEventListener("click", () => {
-        const pre = document.getElementById("rawPre");
-        pre.style.display = (pre.style.display === "none") ? "block" : "none";
-      });
-
-    } catch(e){
-      setState("bad","조회 실패");
-      $("result").innerHTML = `<div class="error">에러: ${escapeHtml(String(e.message||e))}</div>`;
-    } finally {
-      $("btn").disabled = false;
-      $("btn").textContent = "조회";
     }
+
+    showErr("조회 결과가 없어.
+- HBL이 맞는지 확인
+- 해당 건이 아직 유니패스에 조회되지 않는 건일 수 있음
+
+마지막 시도: " + lastMsg);
+  }
+
+  $("btn").addEventListener("click", query);
+  $("hbl").addEventListener("keydown", (e) => { if (e.key === "Enter") query(); });
+
+  $("toggleXml").addEventListener("click", () => {
+    const pre = $("xml");
+    pre.style.display = (pre.style.display === "block") ? "none" : "block";
   });
-</script>
+  </script>
 </body>
 </html>
