@@ -257,11 +257,25 @@
     let expressNm = pick(vo, ["frwrEntsConm"]);
     let carrierNm = pick(vo, ["shcoFlco", "shcoFlcoNm"]);
 
-    let customsNm = pick(vo, ["cstmNm", "csclCstmNm", "dclrCstmNm", "cstm"]);
-    let customsCd = pick(vo, ["cstmCd", "csclCstmCd", "dclrCstmCd"]);
+    let customsNm = pick(vo, ["cstmNm", "csclCstmNm", "dclrCstmNm", "cstm", "customsNm"]);
+    let customsCd = pick(vo, ["cstmCd", "csclCstmCd", "dclrCstmCd", "customsCd"]);
+
+    if (!customsNm) customsNm = pickByKeywords(vo, ["cstm", "custom"]);
+    if (!customsCd) customsCd = pickByKeywords(vo, ["cstmcd", "customscd", "cstm_cd", "cstmcode"]);
+
 
     // 상세 이력(타임라인)
-    const steps = dtlsAll.slice(0, 12).map(n => {
+    const dtlsAll = Array.from(root.getElementsByTagName("cargCsclPrgsInfoDtlQryVo"));
+
+    // dtl이 시간순이 아닐 수 있어서, 처리일시로 정렬(내림차순)
+    const dtlsSorted = dtlsAll.slice().sort((a, b) => {
+      const ta = pick(a, ["prcsDttm", "rlbrDttm", "prcsDt"]);
+      const tb = pick(b, ["prcsDttm", "rlbrDttm", "prcsDt"]);
+      // 문자열 비교로도 대체 가능하지만, ISO/유사 포맷이면 시간순이 잘 맞음
+      return (tb || "").localeCompare(ta || "");
+    });
+
+    const steps = dtlsSorted.slice(0, 12).map(n => {
       const title = pick(n, ["cargTrcnRelaBsopTpcdNm", "prcsStts", "csclPrgsStts", "bfhnGdncCn", "rlbrCn"]);
       const time = pick(n, ["prcsDttm", "rlbrDttm", "prcsDt"]);
       const place = pick(n, ["shedNm", "shedSgn", "cstmNm", "dsprNm"]);
