@@ -445,8 +445,18 @@
 
   $("btn").addEventListener("click", async () => {
     const type = $("type").value;
-    const no = $("no").value.trim();
-    const blYy = $("blYy").value.trim();
+    // NFKC 정규화로 전각 숫자(２０２６) 같은 것도 ASCII로 변환
+    const no = ($("no").value || "").normalize("NFKC").trim();
+
+    // 사용자가 "2026년", "2026 ", "２０２６" 처럼 넣어도 통과하도록 숫자만 추출
+    const blYySanitized = ($("blYy").value || "")
+      .normalize("NFKC")
+      .replace(/[^0-9]/g, "")
+      .slice(0, 4);
+
+    // 입력칸에도 보정값을 반영(실수 방지)
+    if (blYySanitized) $("blYy").value = blYySanitized;
+    const blYy = blYySanitized;
 
     $("result").innerHTML = "";
 
