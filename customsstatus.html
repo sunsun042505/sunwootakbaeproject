@@ -30,22 +30,13 @@
         var(--bg);
       color:var(--text);
     }
-    .wrap{max-width:980px;margin:0 auto;padding:22px}
-    .top{
-      display:flex;justify-content:space-between;align-items:flex-start;gap:14px;flex-wrap:wrap;
-      margin-bottom:16px;
-    }
-    .brand{
-      display:flex;flex-direction:column;gap:6px;
-    }
+    .wrap{max-width:1020px;margin:0 auto;padding:22px}
+    .top{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;flex-wrap:wrap;margin-bottom:16px;}
+    .brand{display:flex;flex-direction:column;gap:6px}
     .brand h1{margin:0;font-size:20px;letter-spacing:.2px}
-    .brand .sub{color:var(--muted);font-size:13px}
+    .brand .sub{color:var(--muted);font-size:13px;line-height:1.45}
     .chips{display:flex;gap:8px;flex-wrap:wrap}
-    .chip{
-      padding:8px 10px;border:1px solid var(--line);background:var(--chip);
-      border-radius:999px;font-size:12px;color:var(--muted)
-    }
-
+    .chip{padding:8px 10px;border:1px solid var(--line);background:var(--chip);border-radius:999px;font-size:12px;color:var(--muted)}
     .panel{
       background:linear-gradient(180deg, rgba(255,255,255,.03), transparent 60%), var(--card);
       border:1px solid var(--line);
@@ -57,17 +48,15 @@
       padding:16px 16px 12px;border-bottom:1px solid var(--line);
       display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;
     }
-    .panel-head .title{font-weight:800}
+    .panel-head .title{font-weight:900}
     .panel-head .small{font-size:12px;color:var(--muted)}
     .panel-body{padding:16px}
-
     .grid{
       display:grid;grid-template-columns: 1.2fr 2fr 1fr auto;
       gap:10px;align-items:end;
     }
-    @media(max-width:860px){.grid{grid-template-columns:1fr 1fr}}
+    @media(max-width:900px){.grid{grid-template-columns:1fr 1fr}}
     @media(max-width:520px){.grid{grid-template-columns:1fr}}
-
     label{display:block;font-size:12px;color:var(--muted);margin:0 0 6px}
     select,input,button{
       width:100%;padding:12px 12px;border-radius:14px;border:1px solid var(--line);
@@ -80,14 +69,9 @@
       padding:12px 16px;
     }
     button:disabled{opacity:.55;cursor:not-allowed}
-    .hint{margin-top:10px;color:var(--muted);font-size:12px;line-height:1.45}
+    .hint{margin-top:10px;color:var(--muted);font-size:12px;line-height:1.5}
     .hint b{color:var(--text)}
-    .hr{height:1px;background:var(--line);margin:16px 0}
-
-    .statusbar{
-      display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;
-      margin-top:12px;
-    }
+    .statusbar{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-top:12px;}
     .badge{
       display:inline-flex;align-items:center;gap:8px;
       padding:8px 12px;border-radius:999px;border:1px solid var(--line);
@@ -96,45 +80,55 @@
     .dot{width:9px;height:9px;border-radius:999px;background:var(--warn)}
     .dot.ok{background:var(--good)}
     .dot.bad{background:var(--bad)}
-
-    .cards{
-      display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:14px;
-    }
-    @media(max-width:860px){.cards{grid-template-columns:1fr 1fr}}
-    @media(max-width:520px){.cards{grid-template-columns:1fr}}
-    .kv{
-      padding:12px;border:1px solid var(--line);border-radius:16px;background:rgba(255,255,255,.03)
-    }
-    .k{font-size:11px;color:var(--muted);margin-bottom:6px}
-    .v{font-size:14px;font-weight:800;word-break:break-word}
-
-    .timeline{
-      margin-top:14px;border:1px solid var(--line);border-radius:16px;background:rgba(255,255,255,.02);
-      padding:12px;
-    }
-    .tl-title{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:10px}
-    .tl-title .t{font-weight:900}
-    .step{display:flex;gap:12px;padding:10px 6px;border-top:1px dashed rgba(255,255,255,.12)}
-    .step:first-child{border-top:none}
-    .s-left{min-width:10px;display:flex;flex-direction:column;align-items:center;gap:6px;padding-top:2px}
-    .s-ball{width:10px;height:10px;border-radius:999px;background:rgba(92,124,250,.95)}
-    .s-line{width:2px;flex:1;background:rgba(255,255,255,.10)}
-    .s-main{flex:1}
-    .s1{font-weight:900}
-    .s2{margin-top:3px;font-size:12px;color:var(--muted)}
+    .hr{height:1px;background:var(--line);margin:16px 0}
     .error{
       margin-top:14px;padding:12px;border-radius:16px;border:1px solid rgba(255,77,109,.35);
       background:rgba(255,77,109,.12);color:#ffdbe2;font-size:13px;line-height:1.5
     }
-    .raw{
+    .card{
       margin-top:14px;
-      border:1px solid var(--line);border-radius:16px;background:rgba(255,255,255,.02);
-      overflow:hidden
+      border:1px solid var(--line);
+      border-radius:18px;
+      background:rgba(255,255,255,.03);
+      overflow:hidden;
     }
+    .card-head{
+      padding:14px 14px 10px;
+      border-bottom:1px solid rgba(255,255,255,.08);
+      display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap;
+    }
+    .card-head .h{
+      display:flex;flex-direction:column;gap:6px;
+    }
+    .big{font-size:16px;font-weight:950}
+    .mut{color:var(--muted);font-size:12px}
+    .copyrow{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+    .miniBtn{
+      width:auto;
+      padding:8px 10px;
+      border-radius:12px;
+      background:rgba(255,255,255,.10);
+      border:1px solid var(--line);
+      color:var(--text);
+      font-weight:850;
+      cursor:pointer;
+    }
+    .cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;padding:14px}
+    @media(max-width:860px){.cards{grid-template-columns:1fr 1fr}}
+    @media(max-width:520px){.cards{grid-template-columns:1fr}}
+    .kv{padding:12px;border:1px solid var(--line);border-radius:16px;background:rgba(255,255,255,.02)}
+    .k{font-size:11px;color:var(--muted);margin-bottom:6px}
+    .v{font-size:14px;font-weight:900;word-break:break-word}
+    .tableWrap{padding:0 14px 14px}
+    table{width:100%;border-collapse:separate;border-spacing:0}
+    th,td{padding:10px;border-bottom:1px solid rgba(255,255,255,.08);vertical-align:top}
+    th{font-size:12px;color:var(--muted);text-align:left;position:sticky;top:0;background:rgba(16,24,42,.92);backdrop-filter: blur(6px)}
+    td{font-size:13px}
+    .stage{font-weight:900}
+    .smalltd{color:var(--muted);font-size:12px;margin-top:4px}
+    .raw{margin-top:14px;border:1px solid var(--line);border-radius:16px;background:rgba(255,255,255,.02);overflow:hidden}
     .raw-head{padding:10px 12px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}
-    .raw-head b{font-size:13px}
-    .raw-head button{width:auto;padding:8px 10px;border-radius:12px;background:rgba(255,255,255,.10);border:1px solid var(--line);font-weight:800}
-    pre{margin:0;padding:12px;white-space:pre-wrap;word-break:break-word;color:rgba(233,238,252,.9)}
+    pre{margin:0;padding:12px;white-space:pre-wrap;word-break:break-word;color:rgba(233,238,252,.9);max-height:420px;overflow:auto}
   </style>
 </head>
 <body>
@@ -142,12 +136,15 @@
     <div class="top">
       <div class="brand">
         <h1>선우택배 · 통관 진행 조회</h1>
-        <div class="sub">관세청(유니패스) 결과에서 <b>핵심필드만 뽑아</b> 카드로 보여줌 · 운송장번호는 화면에 숨김</div>
+        <div class="sub">
+          <b>특송업체</b>: &lt;frwrEntsConm&gt; / <b>선사·항공사</b>: &lt;shcoFlco&gt; 로 고정 파싱.<br/>
+          연도(blYy) 틀리면 <b>tCnt=0</b> 나올 수 있음.
+        </div>
       </div>
       <div class="chips">
-        <div class="chip">보안: 번호 마스킹</div>
-        <div class="chip">UI: 진행 카드/타임라인</div>
-        <div class="chip">Netlify Functions 프록시</div>
+        <div class="chip">API: /.netlify/functions/unipass</div>
+        <div class="chip">UI: 핵심필드 카드 + 이력 테이블</div>
+        <div class="chip">번호: 통관조회에서는 전체 표시</div>
       </div>
     </div>
 
@@ -155,7 +152,7 @@
       <div class="panel-head">
         <div>
           <div class="title">조회</div>
-          <div class="small">HBL/MBL은 <b>연도(blYy)</b>가 맞아야 결과가 나옴 (너가 방금 겪은 그거 ㅋㅋ)</div>
+          <div class="small">HBL/MBL은 blYy(4자리 연도) 필수</div>
         </div>
         <div class="small" id="last">마지막 조회: -</div>
       </div>
@@ -185,13 +182,13 @@
         </div>
 
         <div class="hint">
-          • 결과가 안 나오면 <b>연도</b> 먼저 의심해라 ㅋㅋ<br/>
-          • 이 페이지는 내부용이라 번호 입력이 필요하지만, 화면에는 <b>끝 4자리만</b> 보이게 처리함.
+          • 특송업체는 <b>frwrEntsConm</b>, 선사·항공사는 <b>shcoFlco</b>만 신뢰.<br/>
+          • 세관명은 내려오는 케이스가 있어도 비는 케이스가 있음 → 없으면 세관코드/장치장으로 대체 표기.
         </div>
 
         <div class="statusbar">
           <div class="badge"><span class="dot" id="dot"></span><span id="badge">대기</span></div>
-          <div class="badge">API 호출 경로: <span style="color:var(--text)">/.netlify/functions/unipass</span></div>
+          <div class="badge"><span>원문(XML)도 아래에서 확인 가능</span></div>
         </div>
 
         <div id="result"></div>
@@ -209,9 +206,8 @@
     $("dot").className = "dot" + (kind === "ok" ? " ok" : kind === "bad" ? " bad" : "");
   }
 
-  function maskNo(s){
-    // 통관조회 화면에서는 운송장/BL 번호를 그대로 표시
-    return (s||"").toString().trim();
+  function escapeHtml(s){
+    return (s||"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;");
   }
 
   function xmlText(node, tag){
@@ -227,124 +223,198 @@
     return "";
   }
 
+  // 안전장치: 키워드 스캔용(필요 없더라도 undefined 방지)
+  function pickByKeywords(xmlNode, keywords){
+    const all = xmlNode.getElementsByTagName("*");
+    for (let i=0;i<all.length;i++){
+      const el = all[i];
+      const tag = (el.tagName||"").toLowerCase();
+      const val = (el.textContent||"").trim();
+      if (!val) continue;
+      for (const kw of keywords){
+        if (tag.includes(kw)) return val;
+      }
+    }
+    return "";
+  }
+
   function fmtDate8(s){
     s = (s||"").trim();
-    if (/^\d{8}$/.test(s)) return `${s.slice(0,4)}-${s.slice(4,6)}-${s.slice(6,8)}`;
+    if (/^\\d{8}$/.test(s)) return `${s.slice(0,4)}-${s.slice(4,6)}-${s.slice(6,8)}`;
     return s;
   }
 
-  // 유니패스 태그는 케이스별로 조금씩 달라서 후보를 넉넉히 둠
-  function parseUnipass(xmlDoc, inputNo){
+  function parseDateTimeKey(s){
+    // 가능한 포맷: YYYYMMDDHHMMSS / YYYYMMDDHHMM / YYYYMMDD
+    s = (s||"").trim();
+    if (/^\\d{14}$/.test(s)) return s;
+    if (/^\\d{12}$/.test(s)) return s + "00";
+    if (/^\\d{8}$/.test(s)) return s + "000000";
+    return "";
+  }
+
+  function formatDttm(s){
+    s = (s||"").trim();
+    if (/^\\d{14}$/.test(s)){
+      return `${s.slice(0,4)}-${s.slice(4,6)}-${s.slice(6,8)} ${s.slice(8,10)}:${s.slice(10,12)}:${s.slice(12,14)}`;
+    }
+    if (/^\\d{12}$/.test(s)){
+      return `${s.slice(0,4)}-${s.slice(4,6)}-${s.slice(6,8)} ${s.slice(8,10)}:${s.slice(10,12)}`;
+    }
+    return s;
+  }
+
+  function parseUnipass(xmlDoc, inputNo, type){
     const root = xmlDoc;
 
     const tCnt = pick(root, ["tCnt"]);
-    const ntceInfo = pick(root, ["ntceInfo"]); // 에러/안내가 여기 오는 경우 많음
+    const ntceInfo = pick(root, ["ntceInfo"]);
 
-    // 대표 VO (기본정보)
     const vo = root.getElementsByTagName("cargCsclPrgsInfoQryVo")[0] || root;
 
-    const csclPrgsStts = pick(vo, ["csclPrgsStts", "prgsStts", "prgsStCd"]);  // 통관 진행상태
-    const prcsDttm = pick(vo, ["prcsDttm", "prcsDt", "dttm"]);               // 처리일시
-    const prnm = pick(vo, ["prnm", "gdsNm", "prdtNm"]);                      // 품명
-    const etprDt = fmtDate8(pick(vo, ["etprDt", "etprDt8", "etprYmd"]));     // 입항일
-    const ldpr = pick(vo, ["ldprNm", "ldprCd"]);                             // 적재항
-    const dspr = pick(vo, ["dsprNm", "dsprCd"]);                             // 양륙항
+    // 핵심 필드
+    const csclPrgsStts = pick(vo, ["csclPrgsStts", "prgsStts", "prgsStCd"]);
+    const prcsDttmRaw = pick(vo, ["prcsDttm", "prcsDt", "dttm"]);
+    const prcsDttm = formatDttm(prcsDttmRaw);
 
-    // ✅ 핵심: "정확 태그 고정" (요청 반영)
-    // 특송업체: <frwrEntsConm>
-    // 선사/항공사: <shcoFlco> (없으면 shcoFlcoNm 보조)
-    // 세관명은 케이스마다 태그가 달라서 후보 + 코드 fallback
-    let expressNm = pick(vo, ["frwrEntsConm"]);
-    let carrierNm = pick(vo, ["shcoFlco", "shcoFlcoNm"]);
+    const prnm = pick(vo, ["prnm", "gdsNm", "prdtNm"]);
+    const etprDt = fmtDate8(pick(vo, ["etprDt", "etprYmd"]));
+    const ldpr = pick(vo, ["ldprNm", "ldprCd"]);
+    const dspr = pick(vo, ["dsprNm", "dsprCd"]);
 
-    let customsNm = pick(vo, ["cstmNm", "csclCstmNm", "dclrCstmNm", "cstm", "customsNm"]);
-    let customsCd = pick(vo, ["cstmCd", "csclCstmCd", "dclrCstmCd", "customsCd"]);
+    // **고정 파싱**
+    const expressNm = pick(vo, ["frwrEntsConm"]);   // 특송업체
+    const carrierNm = pick(vo, ["shcoFlco", "shcoFlcoNm"]); // 선사/항공사
 
-    if (!customsNm) customsNm = pickByKeywords(vo, ["cstm", "custom"]);
-    if (!customsCd) customsCd = pickByKeywords(vo, ["cstmcd", "customscd", "cstm_cd", "cstmcode"]);
+    // 세관명/코드(비는 케이스 대비)
+    let customsNm = pick(vo, ["cstmNm", "csclCstmNm", "dclrCstmNm"]);
+    let customsCd = pick(vo, ["cstmCd", "cstm", "csclCstmCd"]);
 
-
-    // 상세 이력(타임라인)
+    // 상세 이력
     const dtlsAll = Array.from(root.getElementsByTagName("cargCsclPrgsInfoDtlQryVo"));
+    const stepsRaw = dtlsAll.map(n => {
+      const timeRaw = pick(n, ["prcsDttm", "prcsDt", "rlbrDttm"]);
+      const timeKey = parseDateTimeKey(timeRaw);
+      const timeDisp = formatDttm(timeRaw);
 
-    // dtl이 시간순이 아닐 수 있어서, 처리일시로 정렬(내림차순)
-    const dtlsSorted = dtlsAll.slice().sort((a, b) => {
-      const ta = pick(a, ["prcsDttm", "rlbrDttm", "prcsDt"]);
-      const tb = pick(b, ["prcsDttm", "rlbrDttm", "prcsDt"]);
-      // 문자열 비교로도 대체 가능하지만, ISO/유사 포맷이면 시간순이 잘 맞음
-      return (tb || "").localeCompare(ta || "");
+      // 단계명 후보 (처리 처리 같은 기본값 없이)
+      let stage = pick(n, ["prcsStts", "bfhnGdncCn", "rlbrCn", "cargTrcnRelaBsopTpcdNm"]);
+      if (!stage) stage = pick(vo, ["csclPrgsStts", "prgsStts"]) || "진행";
+
+      const place = pick(n, ["shedNm", "shedSgn", "dsprNm", "ldprNm"]);
+      const remark = pick(n, ["rlbrCn", "bfhnGdncCn", "ntceInfo", "rmrkCn"]);
+
+      // dtl에서도 특송/선사 값이 오는 케이스 대비(있으면 보강)
+      const dtlExpress = pick(n, ["frwrEntsConm"]);
+      const dtlCarrier = pick(n, ["shcoFlco", "shcoFlcoNm"]);
+
+      // 세관명이 dtl에 존재하는 케이스 대비
+      const dtlCustomsNm = pick(n, ["cstmNm", "csclCstmNm", "dclrCstmNm"]);
+      const dtlCustomsCd = pick(n, ["cstmCd", "cstm", "csclCstmCd"]);
+
+      return {
+        timeKey, timeDisp,
+        stage, place, remark,
+        dtlExpress, dtlCarrier,
+        dtlCustomsNm, dtlCustomsCd
+      };
     });
 
-    const steps = dtlsSorted.slice(0, 12).map(n => {
-      const title = pick(n, ["cargTrcnRelaBsopTpcdNm", "prcsStts", "csclPrgsStts", "bfhnGdncCn", "rlbrCn"]);
-      const time = pick(n, ["prcsDttm", "rlbrDttm", "prcsDt"]);
-      const place = pick(n, ["shedNm", "shedSgn", "cstmNm", "dsprNm"]);
+    // dtl에서 세관/특송/선사 보강
+    if (!customsNm){
+      const hit = stepsRaw.find(s => s.dtlCustomsNm);
+      if (hit) customsNm = hit.dtlCustomsNm;
+    }
+    if (!customsCd){
+      const hit = stepsRaw.find(s => s.dtlCustomsCd);
+      if (hit) customsCd = hit.dtlCustomsCd;
+    }
 
-      const express = pick(n, ["frwrEntsConm"]);
-      const carrier = pick(n, ["shcoFlco", "shcoFlcoNm"]);
+    const expressFinal = expressNm || (stepsRaw.find(s => s.dtlExpress)?.dtlExpress || "");
+    const carrierFinal = carrierNm || (stepsRaw.find(s => s.dtlCarrier)?.dtlCarrier || "");
 
-      const customsStep = pick(n, ["cstmNm", "csclCstmNm", "dclrCstmNm", "cstmNm"]);
-      const customsCodeStep = pick(n, ["cstmCd", "csclCstmCd", "dclrCstmCd", "cstm"]);
+    // 이력 정렬(시간Key 있는 것 우선 내림차순)
+    const steps = stepsRaw
+      .filter(s => s.stage || s.timeDisp || s.place || s.remark)
+      .sort((a,b) => (b.timeKey || "").localeCompare(a.timeKey || ""));
 
-      return { title, time, place, express, carrier, customsStep, customsCodeStep };
-    }).filter(s => (s.title || s.time || s.place));
+    // 장치장/센터 느낌 보강(세관명 없을 때 대비)
+    const shedTop = pick(vo, ["shedNm", "shedSgn"]) || (steps.find(s => s.place)?.place || "");
 
     return {
       tCnt, ntceInfo,
-      noFull: maskNo(inputNo),
+      inputNo, type,
       csclPrgsStts, prcsDttm,
+      express: expressFinal,
+      carrier: carrierFinal,
       customsNm, customsCd,
-      expressNm, carrierNm,
-      bondedPlace,
+      shedTop,
       prnm, etprDt, ldpr, dspr,
       steps
     };
   }
 
   function cardHTML(d){
+    const customsLine = d.customsNm ? d.customsNm : (d.customsCd ? `세관코드 ${d.customsCd}` : "-");
+    const shedLine = d.shedTop ? d.shedTop : "-";
+
+    const rows = d.steps.slice(0, 25).map(s => `
+      <tr>
+        <td style="width:170px">${escapeHtml(s.timeDisp || "-")}</td>
+        <td>
+          <div class="stage">${escapeHtml(s.stage || "-")}</div>
+          <div class="smalltd">${escapeHtml([s.place, s.remark].filter(Boolean).join(" · ") || "")}</div>
+        </td>
+        <td style="width:180px">
+          <div><b>특송</b> ${escapeHtml(s.dtlExpress || "")}</div>
+          <div class="smalltd"><b>선사/항공</b> ${escapeHtml(s.dtlCarrier || "")}</div>
+        </td>
+      </tr>
+    `).join("");
+
     return `
-      <div class="hr"></div>
-
-      <div class="chips" style="margin-bottom:10px">
-        <div class="chip">번호: <b style="color:var(--text)">${d.noFull}</b></div>
-        <div class="chip">상태: <b style="color:var(--text)">${d.csclPrgsStts || "-"}</b></div>
-        <div class="chip">처리: <b style="color:var(--text)">${d.prcsDttm || "-"}</b></div>
-      </div>
-
-      <div class="cards">
-        <div class="kv"><div class="k">특송업체</div><div class="v">${d.expressNm || "-"}</div></div>
-        <div class="kv"><div class="k">선사/항공사</div><div class="v">${d.carrierNm || "-"}</div></div>
-        <div class="kv"><div class="k">세관</div><div class="v">${d.customsNm || "-"}</div></div>
-
-        <div class="kv"><div class="k">장치장/특송센터</div><div class="v">${d.bondedPlace || "-"}</div></div>
-        <div class="kv"><div class="k">입항일</div><div class="v">${d.etprDt || "-"}</div></div>
-        <div class="kv"><div class="k">품명</div><div class="v">${d.prnm || "-"}</div></div>
-
-        <div class="kv"><div class="k">적재항</div><div class="v">${d.ldpr || "-"}</div></div>
-        <div class="kv"><div class="k">양륙항</div><div class="v">${d.dspr || "-"}</div></div>
-      </div>
-
-      ${
-        d.steps && d.steps.length ? `
-        <div class="timeline">
-          <div class="tl-title">
-            <div class="t">진행 타임라인 (최근 ${Math.min(d.steps.length,8)}건)</div>
-            <div class="muted">민감번호는 표시 안 함</div>
+      <div class="card">
+        <div class="card-head">
+          <div class="h">
+            <div class="big">운송장/번호: ${escapeHtml(d.inputNo)}</div>
+            <div class="mut">타입: ${escapeHtml(d.type)} · 상태: ${escapeHtml(d.csclPrgsStts || "-")} · 처리: ${escapeHtml(d.prcsDttm || "-")}</div>
           </div>
-          ${d.steps.map((s,i)=>`
-            <div class="step">
-              <div class="s-left">
-                <div class="s-ball"></div>
-                ${i === d.steps.length - 1 ? "" : `<div class="s-line"></div>`}
-              </div>
-              <div class="s-main">
-                <div class="s1">${s.title || "-"}</div>
-                <div class="s2">${[(s.time||"").trim(), (s.place||""), (s.express ? "특송: " + s.express : ""), (s.carrier ? "선사/항공: " + s.carrier : "")].filter(Boolean).join(" · ")}</div>
-              </div>
-            </div>
-          `).join("")}
-        </div>` : ""
-      }
+          <div class="copyrow">
+            <button class="miniBtn" id="copyNo">번호 복사</button>
+            <button class="miniBtn" id="copyStatus">상태 복사</button>
+          </div>
+        </div>
+
+        <div class="cards">
+          <div class="kv"><div class="k">특송업체 (frwrEntsConm)</div><div class="v">${escapeHtml(d.express || "-")}</div></div>
+          <div class="kv"><div class="k">선사/항공사 (shcoFlco)</div><div class="v">${escapeHtml(d.carrier || "-")}</div></div>
+          <div class="kv"><div class="k">세관</div><div class="v">${escapeHtml(customsLine)}</div></div>
+
+          <div class="kv"><div class="k">장치장/센터</div><div class="v">${escapeHtml(shedLine)}</div></div>
+          <div class="kv"><div class="k">입항일</div><div class="v">${escapeHtml(d.etprDt || "-")}</div></div>
+          <div class="kv"><div class="k">품명</div><div class="v">${escapeHtml(d.prnm || "-")}</div></div>
+
+          <div class="kv"><div class="k">적재항</div><div class="v">${escapeHtml(d.ldpr || "-")}</div></div>
+          <div class="kv"><div class="k">양륙항</div><div class="v">${escapeHtml(d.dspr || "-")}</div></div>
+          <div class="kv"><div class="k">이력 건수</div><div class="v">${escapeHtml(String(d.steps.length))}</div></div>
+        </div>
+
+        <div class="tableWrap">
+          <div class="mut" style="margin:2px 0 10px">진행 이력 (최신순, 최대 25건)</div>
+          <table>
+            <thead>
+              <tr>
+                <th style="width:170px">처리시각</th>
+                <th>단계 / 비고</th>
+                <th style="width:180px">업체(이력)</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${rows || `<tr><td colspan="3" class="mut">이력 데이터가 없어.</td></tr>`}
+            </tbody>
+          </table>
+        </div>
+      </div>
     `;
   }
 
@@ -353,15 +423,11 @@
       <div class="raw">
         <div class="raw-head">
           <b>원문(XML)</b>
-          <button id="toggleRaw" type="button">접기/펼치기</button>
+          <button class="miniBtn" id="toggleRaw" type="button">접기/펼치기</button>
         </div>
         <pre id="rawPre">${escapeHtml(xmlText)}</pre>
       </div>
     `;
-  }
-
-  function escapeHtml(s){
-    return (s||"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;");
   }
 
   async function callAPI(type, no, blYy){
@@ -371,6 +437,10 @@
     const text = await r.text();
     if (!r.ok) throw new Error(text || `HTTP ${r.status}`);
     return text;
+  }
+
+  function safeCopy(text){
+    navigator.clipboard?.writeText(text).catch(()=>{});
   }
 
   $("btn").addEventListener("click", async () => {
@@ -385,7 +455,7 @@
       $("result").innerHTML = `<div class="error">번호가 비었음</div>`;
       return;
     }
-    if ((type === "hbl" || type === "mbl") && !/^\d{4}$/.test(blYy)){
+    if ((type === "hbl" || type === "mbl") && !/^\\d{4}$/.test(blYy)){
       setState("bad","연도(4자리) 필요");
       $("result").innerHTML = `<div class="error">HBL/MBL은 blYy(4자리 연도)가 필요함. 예) 2026</div>`;
       return;
@@ -398,8 +468,7 @@
     try{
       const xmlText = await callAPI(type, no, blYy);
       const xmlDoc = new DOMParser().parseFromString(xmlText, "text/xml");
-
-      const d = parseUnipass(xmlDoc, no);
+      const d = parseUnipass(xmlDoc, no, type);
 
       $("last").textContent = "마지막 조회: " + nowKST();
 
@@ -408,18 +477,22 @@
         $("result").innerHTML = `<div class="error">${escapeHtml(d.ntceInfo)}</div>` + rawBox(xmlText);
       } else if (d.tCnt === "0"){
         setState("bad","결과 없음");
-        $("result").innerHTML =
-          `<div class="error">조회 결과가 0건(tCnt=0)이야. 번호/연도(blYy) 다시 확인 ㄱㄱ</div>` +
-          rawBox(xmlText);
+        $("result").innerHTML = `<div class="error">조회 결과 0건(tCnt=0). 번호/연도(blYy) 확인 ㄱㄱ</div>` + rawBox(xmlText);
       } else {
         setState("ok","조회 완료");
         $("result").innerHTML = cardHTML(d) + rawBox(xmlText);
 
-        const btn = document.getElementById("toggleRaw");
+        // 버튼 핸들러
+        const copyNoBtn = document.getElementById("copyNo");
+        const copyStatusBtn = document.getElementById("copyStatus");
+        copyNoBtn?.addEventListener("click", ()=> safeCopy(d.inputNo));
+        copyStatusBtn?.addEventListener("click", ()=> safeCopy(`${d.csclPrgsStts || ""} / ${d.prcsDttm || ""}`));
+
+        const toggle = document.getElementById("toggleRaw");
         const pre = document.getElementById("rawPre");
-        if (btn && pre){
+        if (toggle && pre){
           let hidden = false;
-          btn.addEventListener("click", ()=>{
+          toggle.addEventListener("click", ()=>{
             hidden = !hidden;
             pre.style.display = hidden ? "none" : "block";
           });
