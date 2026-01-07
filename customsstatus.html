@@ -137,7 +137,7 @@
         </div>
       </div>
       <div class="chips">
-        <div class="chip">버전: <b id="ver">v4.8-yearselect</b></div>
+        <div class="chip">버전: <b id="ver">v4.7-stage</b></div>
         <div class="chip">API: <b>/.netlify/functions/unipass</b></div>
       </div>
     </div>
@@ -167,7 +167,7 @@
           </div>
           <div>
             <label>B/L 연도(blYy)</label>
-            <select id="blYySel" aria-label="B/L 연도 선택"></select>
+            <input id="blYy" placeholder="예) 2026 (비워도 됨)" inputmode="numeric" />
           </div>
           <div>
             <label>&nbsp;</label>
@@ -192,7 +192,7 @@
 
 <script>
 (() => {
-  const VERSION = "v4.8-yearselect (2026-01-07)";
+  const VERSION = "v4.7-stage (2026-01-07)";
   const $ = (id) => document.getElementById(id);
 
   $("ver").textContent = VERSION;
@@ -240,38 +240,6 @@
     const digits = raw.replace(/[^\d]/g, "");
     if (digits.length >= 4) return digits.slice(0,4);
     return "";
-  }
-
-  function initYearSelect(){
-    const sel = $("blYySel");
-    if (!sel) return;
-    sel.innerHTML = "";
-    const now = new Date();
-    const yNow = now.getFullYear();
-    const years = [];
-    years.push({ label: "자동(추천)", value: "" });
-    // 넉넉히: 내년~10년 전까지
-    for (let y = yNow + 1; y >= yNow - 10; y--){
-      years.push({ label: String(y), value: String(y) });
-    }
-    for (const it of years){
-      const opt = document.createElement("option");
-      opt.value = it.value;
-      opt.textContent = it.label;
-      sel.appendChild(opt);
-    }
-    // 기본은 자동
-    sel.value = "";
-  }
-
-  function syncYearSelectState(){
-    const type = ($("type")?.value || "").toLowerCase();
-    const sel = $("blYySel");
-    if (!sel) return;
-    const isCarg = type === "carg";
-    sel.disabled = isCarg;
-    sel.style.opacity = isCarg ? "0.6" : "1";
-    if (isCarg) sel.value = "";
   }
 
   function containsKorean(s){
@@ -474,14 +442,7 @@
         return { xmlText, usedYear: y };
       }
       if (tCnt && tCnt !== "0"){
-        // 선택 목록에 없으면 추가
-        if ($("blYySel") && !Array.from($("blYySel").options).some(o => o.value === y)) {
-          const opt = document.createElement("option");
-          opt.value = y;
-          opt.textContent = y;
-          $("blYySel").appendChild(opt);
-        }
-        if ($("blYySel")) $("blYySel").value = y;
+        $("blYy").value = y;
         return { xmlText, usedYear: y };
       }
     }
@@ -489,16 +450,10 @@
     return { xmlText: lastXml, usedYear: tries[0] || "" };
   }
 
-  // 초기화
-  initYearSelect();
-  syncYearSelectState();
-  $("type")?.addEventListener("change", syncYearSelectState);
-
-
   $("btn").addEventListener("click", async () => {
     const type = $("type").value;
     const no = ($("no").value || "").trim();
-    const blYy = ($("blYySel").value || "").trim();
+    const blYy = ($("blYy").value || "").trim();
 
     $("result").innerHTML = "";
     if (!no){
