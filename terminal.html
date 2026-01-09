@@ -336,7 +336,7 @@ function railFromText(s){
 }
 
 
-const HUB_NAME = "허브터미널";
+const HUB_NAME = "강남허브터미널";
 const SESSION_KEY = "HUB_SESSION_TERMINAL_V1";
 const RAIL_KEY = "HUB_RAIL_STATUS_TERMINAL_V1";
 const DEST_KEY = "DELIVERY_TERMINALS_V1";
@@ -564,7 +564,7 @@ async function doMove(){
 function printLabel(){
   if(!currentRec) return banner("warn","먼저 운송장을 조회해.");
   const wb = currentRec.waybillNo;
-  window.location.href = `label.html?invoice_no=${encodeURIComponent(wb)}`;
+  window.location.href = `hublabel.html?invoice_no=${encodeURIComponent(wb)}`;
 }
 
 async function init(){
